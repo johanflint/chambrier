@@ -1,0 +1,11 @@
+logging:
+  level:
+    root: info
+
+spring:
+  codec:
+    max-in-memory-size: 1MB
+
+hue:
+  base-url: ${HUE_ENDPOINT}
+  app-key: ${HUE_APP_KEY}
