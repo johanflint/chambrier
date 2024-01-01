@@ -19,5 +19,3 @@ data class ProductData(
     val softwareVersion: String, // pattern: \d+\.\d+\.\d+
     val hardwarePlatformType: String?,
 )
-
-data class HueError(val description: String)
