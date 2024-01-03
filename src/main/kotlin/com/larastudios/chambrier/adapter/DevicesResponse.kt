@@ -8,6 +8,7 @@ data class DevicesResponse(
 data class DeviceGet(
     val id: String,
     val productData: ProductData,
+    val metadata: Metadata,
 )
 
 data class ProductData(
@@ -18,4 +19,9 @@ data class ProductData(
     val certified: Boolean,
     val softwareVersion: String, // pattern: \d+\.\d+\.\d+
     val hardwarePlatformType: String?,
+)
+
+data class Metadata(
+    val name: String, // length >= 1 && <= 32
+    val archetype: String,
 )

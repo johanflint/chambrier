@@ -2,9 +2,14 @@ package com.larastudios.chambrier.adapter
 
 import com.larastudios.chambrier.app.ObservationException
 import com.larastudios.chambrier.app.Observer
+import com.larastudios.chambrier.app.domain.Device
+import com.larastudios.chambrier.app.domain.DeviceType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
+
 
 @Service
 class HueObserver(val client: HueClient) : Observer {
@@ -36,7 +41,26 @@ class HueObserver(val client: HueClient) : Observer {
                 }
             }
 
-        Mono.zip(devices, lights).subscribe()
+        Mono.zip(devices, lights)
+            .map { (deviceMap, lights) ->
+                lights.map { light ->
+                    val deviceGet = deviceMap[light.owner.rid] ?: throw ObservationException("")
+
+                    Device(
+                        deviceGet.id,
+                        DeviceType.Light,
+                        deviceGet.productData.manufacturerName,
+                        deviceGet.productData.modelId,
+                        deviceGet.productData.productName,
+                        deviceGet.metadata.name,
+                        mapOf()
+                    )
+                }
+            }
+            .doOnNext {
+                logger.info { "Mapped ${it.size} devices" }
+            }
+            .subscribe()
     }
 
     companion object {
