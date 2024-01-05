@@ -4,8 +4,11 @@ import com.larastudios.chambrier.app.ObservationException
 import com.larastudios.chambrier.app.Observer
 import com.larastudios.chambrier.app.domain.Device
 import com.larastudios.chambrier.app.domain.DeviceType
+import com.larastudios.chambrier.app.domain.DiscoveredDevices
+import com.larastudios.chambrier.app.domain.Event
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -13,7 +16,7 @@ import reactor.kotlin.core.util.function.component2
 
 @Service
 class HueObserver(val client: HueClient) : Observer {
-    override fun observe() {
+    override fun observe(): Flux<Event> {
         logger.info { "Retrieve Hue devices..." }
         val devices = client.retrieveDevices()
             .flatMap {
@@ -41,7 +44,7 @@ class HueObserver(val client: HueClient) : Observer {
                 }
             }
 
-        Mono.zip(devices, lights)
+        return Mono.zip(devices, lights)
             .map { (deviceMap, lights) ->
                 lights.map { light ->
                     val deviceGet = deviceMap[light.owner.rid] ?: throw ObservationException("")
@@ -57,10 +60,8 @@ class HueObserver(val client: HueClient) : Observer {
                     )
                 }
             }
-            .doOnNext {
-                logger.info { "Mapped ${it.size} devices" }
-            }
-            .subscribe()
+            .map<Event> { DiscoveredDevices(it) }
+            .flux()
     }
 
     companion object {
