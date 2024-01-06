@@ -5,10 +5,12 @@ import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
 
 @Component
-class AppListener(val observer: Observer) : ApplicationListener<ContextRefreshedEvent> {
+class AppListener(val observers: List<Observer>) : ApplicationListener<ContextRefreshedEvent> {
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
-        observer.observe()
-            .log()
-            .subscribe()
+        for (observer in observers) {
+            observer.observe()
+                .log()
+                .subscribe()
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.larastudios.chambrier.app.domain.DeviceType
 import com.larastudios.chambrier.app.domain.DiscoveredDevices
 import com.larastudios.chambrier.app.domain.Event
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -15,6 +16,7 @@ import reactor.kotlin.core.util.function.component2
 
 
 @Service
+@ConditionalOnProperty("hue.enabled")
 class HueObserver(val client: HueClient) : Observer {
     override fun observe(): Flux<Event> {
         logger.info { "Retrieve Hue devices..." }

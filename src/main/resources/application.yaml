@@ -7,5 +7,6 @@ spring:
     max-in-memory-size: 1MB
 
 hue:
+  enabled: false
   base-url: ${HUE_ENDPOINT}
   app-key: ${HUE_APP_KEY}
