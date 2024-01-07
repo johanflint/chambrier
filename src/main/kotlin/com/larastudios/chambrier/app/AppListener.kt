@@ -10,16 +10,14 @@ import reactor.core.scheduler.Schedulers
 @Component
 class AppListener(val observers: List<Observer>, val store: Store) : ApplicationListener<ContextRefreshedEvent> {
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
-        logger.info { "Found ${observers.size} observers..." }
-
         val events = Flux.merge(
             observers.map {
+                logger.info { "Starting ${it::class.simpleName}" }
                 it.observe().publishOn(Schedulers.parallel())
             })
 
-        logger.info { "Store subscribing to event stream..." }
         store.subscribe(events)
-        logger.info { "Store subscribing to event stream... OK" }
+        logger.info { "Store subscribed to event stream" }
 
         store.state().log().subscribe()
     }
