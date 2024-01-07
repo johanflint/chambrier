@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      HUE_ENDPOINT: http://192.168.0.1/
+      HUE_APP_KEY: hueAppKey
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK
