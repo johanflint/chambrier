@@ -1,6 +1,7 @@
 package com.larastudios.chambrier.app
 
 import com.larastudios.chambrier.app.domain.*
+import com.larastudios.chambrier.lightDevice
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -38,7 +39,7 @@ class StoreTest {
 
         val event = mockk<Event>()
 
-        val updatedState = State(mapOf(device.id to device))
+        val updatedState = State(mapOf(lightDevice.id to lightDevice))
         every { reducer.reduce(event, any()) } returns updatedState
 
         StepVerifier.create(store.state())
@@ -51,12 +52,3 @@ class StoreTest {
             .verify()
     }
 }
-
-private val device = Device(
-    "90bdce60-3704-470e-be4c-8264f2bc8151",
-    DeviceType.Light,
-    "Signify Netherlands B.V.",
-    "LWA021",
-    "Hue filament bulb",
-     "Livingroom",
-    mapOf())
