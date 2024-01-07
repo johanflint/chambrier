@@ -3,6 +3,8 @@ logging:
     root: info
 
 spring:
+  profiles:
+    default: local
   codec:
     max-in-memory-size: 1MB
 
