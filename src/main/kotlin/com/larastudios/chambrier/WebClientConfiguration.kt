@@ -15,7 +15,7 @@ import reactor.netty.http.client.HttpClient
 class WebClientConfiguration {
     @Bean
     fun hueWebClient(
-        objectMapper: ObjectMapper,
+        @SnakeCased objectMapper: ObjectMapper,
         webClientBuilder: WebClient.Builder,
         @Value("\${hue.base-url}") baseUrl: String,
         @Value("\${hue.app-key}") appKey: String,

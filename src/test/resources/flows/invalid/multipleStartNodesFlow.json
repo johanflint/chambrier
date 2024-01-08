@@ -1,0 +1,13 @@
+{
+  "name": "flow",
+  "nodes": [
+    {
+      "id": "startNode",
+      "type": "startFlowNode"
+    },
+    {
+      "id": "startNode2",
+      "type": "startFlowNode"
+    }
+  ]
+}
