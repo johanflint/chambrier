@@ -33,7 +33,18 @@ data class SerializedEndFlowNode(
 data class SerializedActionFlowNode(
     override val id: String,
     override val outgoingNode: String?,
-    val action: SerializedDoNothingAction
+    val action: SerializedAction
 ) : SerializedFlowNode
 
-data object SerializedDoNothingAction
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(SerializedDoNothingAction::class, name = "doNothing"),
+    JsonSubTypes.Type(SerializedLogAction::class, name = "log"),
+)
+interface SerializedAction
+
+data object SerializedDoNothingAction : SerializedAction
+
+data class SerializedLogAction(
+    val message: String
+) : SerializedAction

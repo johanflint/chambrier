@@ -37,3 +37,4 @@ data class ActionFlowNode(
 interface Action
 
 data object DoNothingAction : Action
+data class LogAction(val message: String) : Action

@@ -15,6 +15,7 @@ class FlowFactoryTest {
     val unusedNodesFlow = ClassPathResource("flows/invalid/unusedNodesFlow.json").getContentAsString(Charsets.UTF_8)
 
     val emptyFlow = ClassPathResource("flows/emptyFlow.json").getContentAsString(Charsets.UTF_8)
+    val logFlow = ClassPathResource("flows/logFlow.json").getContentAsString(Charsets.UTF_8)
 
     @Autowired
     lateinit var factory: FlowFactory
@@ -87,6 +88,23 @@ class FlowFactoryTest {
             .contains(startNode)
             .contains(endNode)
             .hasSize(2)
+        assertThat(flow.startNode).isEqualTo(startNode)
+    }
+
+    @Test
+    fun `creates a flow with an action node of type log`() {
+        val flow = factory.fromJson(logFlow)
+
+        val endNode = EndFlowNode("endNode")
+        val logNode = ActionFlowNode("logNode", listOf(FlowLink(endNode)), LogAction("Action is triggered"))
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(logNode)))
+
+        assertThat(flow.name).isEqualTo("logFlow")
+        assertThat(flow.nodes)
+            .contains(startNode)
+            .contains(logNode)
+            .contains(endNode)
+            .hasSize(3)
         assertThat(flow.startNode).isEqualTo(startNode)
     }
 }

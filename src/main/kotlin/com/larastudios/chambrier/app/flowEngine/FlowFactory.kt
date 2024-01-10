@@ -75,7 +75,15 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
         when (this) {
             is SerializedStartFlowNode -> StartFlowNode(id, outgoingNodes)
             is SerializedEndFlowNode -> EndFlowNode(id)
-            is SerializedActionFlowNode -> ActionFlowNode(id, outgoingNodes, DoNothingAction)
+            is SerializedActionFlowNode -> {
+                val action = when (this.action) {
+                    is SerializedDoNothingAction -> DoNothingAction
+                    is SerializedLogAction -> LogAction(this.action.message)
+                    else -> throw UnknownActionTypeException(this::class.simpleName)
+                }
+
+                ActionFlowNode(id, outgoingNodes, action)
+            }
         }
 }
 
@@ -84,3 +92,4 @@ class NoConnectingNodeException(override val message: String?) : Exception(messa
 class MissingNodeException(override val message: String?) : Exception(message)
 class UnusedNodesException(override val message: String?) : Exception(message)
 class UnknownNodeTypeException(override val message: String?) : Exception(message)
+class UnknownActionTypeException(override val message: String?) : Exception(message)
