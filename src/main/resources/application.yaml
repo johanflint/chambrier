@@ -1,6 +1,7 @@
 logging:
   level:
     root: info
+    com.larastudios: debug
 
 spring:
   profiles:

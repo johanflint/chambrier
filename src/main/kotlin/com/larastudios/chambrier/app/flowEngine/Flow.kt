@@ -1,5 +1,7 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+
 data class Flow(
     val name: String,
     val nodes: List<FlowNode>,
@@ -34,7 +36,20 @@ data class ActionFlowNode(
 ) : FlowNode
 
 
-interface Action
+interface Action {
+    fun execute()
+}
 
-data object DoNothingAction : Action
-data class LogAction(val message: String) : Action
+data object DoNothingAction : Action {
+    override fun execute() {}
+}
+
+data class LogAction(val message: String) : Action {
+    override fun execute() {
+        logger.info { message }
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
+    }
+}
