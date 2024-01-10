@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import com.larastudios.chambrier.app.flowEngine.expression.*
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,6 +17,8 @@ class FlowFactoryTest {
 
     val emptyFlow = ClassPathResource("flows/emptyFlow.json").getContentAsString(Charsets.UTF_8)
     val logFlow = ClassPathResource("flows/logFlow.json").getContentAsString(Charsets.UTF_8)
+    val conditionalFlow = ClassPathResource("flows/conditionalFlow.json").getContentAsString(Charsets.UTF_8)
+    val nestedConditionalFlow = ClassPathResource("flows/nestedConditionalFlow.json").getContentAsString(Charsets.UTF_8)
 
     @Autowired
     lateinit var factory: FlowFactory
@@ -103,6 +106,54 @@ class FlowFactoryTest {
         assertThat(flow.nodes)
             .contains(startNode)
             .contains(logNode)
+            .contains(endNode)
+            .hasSize(3)
+        assertThat(flow.startNode).isEqualTo(startNode)
+    }
+
+    @Test
+    fun `creates a flow with a conditional node`() {
+        val flow = factory.fromJson(conditionalFlow)
+
+        val endNode = EndFlowNode("endNode")
+
+        val expression = EqualToExpression(ConstantValueExpression(42), ConstantValueExpression(42))
+        val conditionalNode = ConditionalFlowNode("conditionalNode", listOf(FlowLink(endNode)), expression)
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(conditionalNode)))
+
+        assertThat(flow.name).isEqualTo("conditionalFlow")
+        assertThat(flow.nodes)
+            .contains(startNode)
+            .contains(conditionalNode)
+            .contains(endNode)
+            .hasSize(3)
+        assertThat(flow.startNode).isEqualTo(startNode)
+    }
+
+    @Test
+    fun `creates a flow with a conditional node with nested expressions`() {
+        val flow = factory.fromJson(nestedConditionalFlow)
+
+        val endNode = EndFlowNode("endNode")
+
+        val expression = OrExpression(
+            AndExpression(
+                EqualToExpression(ConstantValueExpression(42), ConstantValueExpression(42)),
+                GreaterThanExpression(ConstantValueExpression(4), ConstantValueExpression(8)),
+            ),
+            AndExpression(
+                NotEqualToExpression(ConstantValueExpression(42), ConstantValueExpression(1337)),
+                LessThanExpression(ConstantValueExpression(4), ConstantValueExpression(8)),
+            )
+        )
+
+        val conditionalNode = ConditionalFlowNode("conditionalNode", listOf(FlowLink(endNode)), expression)
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(conditionalNode)))
+
+        assertThat(flow.name).isEqualTo("nestedConditionalFlow")
+        assertThat(flow.nodes)
+            .contains(startNode)
+            .contains(conditionalNode)
             .contains(endNode)
             .hasSize(3)
         assertThat(flow.startNode).isEqualTo(startNode)

@@ -1,0 +1,31 @@
+{
+  "name": "conditionalFlow",
+  "nodes": [
+    {
+      "id": "startNode",
+      "type": "startFlowNode",
+      "outgoingNode": "conditionalNode"
+    },
+    {
+      "id": "conditionalNode",
+      "type": "conditionalNode",
+      "outgoingNode": "endNode",
+      "condition": {
+        "type": "equalTo",
+        "left": {
+          "type": "constant",
+          "value": 42
+        },
+        "right": {
+          "type": "constant",
+          "value": 42
+        },
+        "message": "Action is triggered"
+      }
+    },
+    {
+      "id": "endNode",
+      "type": "endFlowNode"
+    }
+  ]
+}

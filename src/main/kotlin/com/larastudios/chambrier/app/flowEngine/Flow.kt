@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import com.larastudios.chambrier.app.flowEngine.expression.Expression
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 data class Flow(
@@ -28,6 +29,12 @@ data class EndFlowNode(
 ) : FlowNode {
     override val outgoingNodes: List<FlowLink> = listOf()
 }
+
+data class ConditionalFlowNode(
+    override val id: String,
+    override val outgoingNodes: List<FlowLink>,
+    val condition: Expression
+) : FlowNode
 
 data class ActionFlowNode(
     override val id: String,

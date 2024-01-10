@@ -2,15 +2,21 @@ package com.larastudios.chambrier.app.flowEngine
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.larastudios.chambrier.app.flowEngine.expression.Expression
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 
 @Service
-class FlowFactory(private val objectMapper: ObjectMapper) {
+class FlowFactory(private val objectMapper: ObjectMapper, private val expressionDeserializer: ExpressionDeserializer) {
     fun fromJson(json: String): Flow {
         val serializedFlow = try {
-            objectMapper.readValue<SerializedFlow>(json)
+            objectMapper
+                .registerModule(SimpleModule().addDeserializer(Expression::class.java, expressionDeserializer))
+                .readValue<SerializedFlow>(json)
         } catch (e: InvalidTypeIdException) {
+            logger.error(e) { "Unknown node type" }
             throw UnknownNodeTypeException(e.typeId)
         }
 
@@ -75,6 +81,7 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
         when (this) {
             is SerializedStartFlowNode -> StartFlowNode(id, outgoingNodes)
             is SerializedEndFlowNode -> EndFlowNode(id)
+            is SerializedConditionalFlowNode -> ConditionalFlowNode(id, outgoingNodes, condition)
             is SerializedActionFlowNode -> {
                 val action = when (this.action) {
                     is SerializedDoNothingAction -> DoNothingAction
@@ -85,6 +92,10 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
                 ActionFlowNode(id, outgoingNodes, action)
             }
         }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
+    }
 }
 
 class TooManyStartNodesException(override val message: String?) : Exception(message)
@@ -92,4 +103,5 @@ class NoConnectingNodeException(override val message: String?) : Exception(messa
 class MissingNodeException(override val message: String?) : Exception(message)
 class UnusedNodesException(override val message: String?) : Exception(message)
 class UnknownNodeTypeException(override val message: String?) : Exception(message)
+class UnknownExpressionTypeException(override val message: String?) : Exception(message)
 class UnknownActionTypeException(override val message: String?) : Exception(message)
