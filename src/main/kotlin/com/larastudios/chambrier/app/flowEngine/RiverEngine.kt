@@ -7,8 +7,12 @@ import org.springframework.stereotype.Service
 class RiverEngine : FlowEngine {
     override fun execute(flow: Flow) {
         logger.debug { "Executing flow ${flow.name}..." }
+        val start = System.currentTimeMillis()
+
         executeNode(flow.startNode)
-        logger.debug { "Executing flow ${flow.name}... OK" }
+
+        val durationInMs = System.currentTimeMillis() - start
+        logger.debug { "Executing flow ${flow.name}... OK, took ${durationInMs}ms" }
     }
 
     private tailrec fun executeNode(node: FlowNode) {
