@@ -9,7 +9,16 @@
     {
       "id": "conditionalNode",
       "type": "conditionalNode",
-      "outgoingNode": "endNode",
+      "outgoingNodes": [
+        {
+          "value": true,
+          "node": "endNode"
+        },
+        {
+          "value": false,
+          "node": "endNode"
+        }
+      ],
       "condition": {
         "type": "or",
         "left": {

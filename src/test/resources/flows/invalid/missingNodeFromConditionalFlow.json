@@ -12,7 +12,7 @@
       "outgoingNodes": [
         {
           "value": true,
-          "node": "endNode"
+          "node": "missingNode"
         },
         {
           "value": false,

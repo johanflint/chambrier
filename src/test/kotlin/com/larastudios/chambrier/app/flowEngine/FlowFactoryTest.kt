@@ -14,6 +14,7 @@ class FlowFactoryTest {
     val missingEndNodeFlow = ClassPathResource("flows/invalid/missingEndNodeFlow.json").getContentAsString(Charsets.UTF_8)
     val unconnectedNodeFlow = ClassPathResource("flows/invalid/unconnectedNodeFlow.json").getContentAsString(Charsets.UTF_8)
     val unusedNodesFlow = ClassPathResource("flows/invalid/unusedNodesFlow.json").getContentAsString(Charsets.UTF_8)
+    val missingNodeFromConditionalFlow = ClassPathResource("flows/invalid/missingNodeFromConditionalFlow.json").getContentAsString(Charsets.UTF_8)
 
     val emptyFlow = ClassPathResource("flows/emptyFlow.json").getContentAsString(Charsets.UTF_8)
     val logFlow = ClassPathResource("flows/logFlow.json").getContentAsString(Charsets.UTF_8)
@@ -71,6 +72,15 @@ class FlowFactoryTest {
     }
 
     @Test
+    fun `throws an exception if a conditional node points to a non-existing node`() {
+        assertThatExceptionOfType(MissingNodeException::class.java)
+            .isThrownBy {
+                factory.fromJson(missingNodeFromConditionalFlow)
+            }
+            .withMessage("Node 'conditionalNode' has a missing outgoing node to 'missingNode'")
+    }
+
+    @Test
     fun `throws an exception if not all nodes are connected`() {
         assertThatExceptionOfType(UnusedNodesException::class.java)
             .isThrownBy {
@@ -118,7 +128,7 @@ class FlowFactoryTest {
         val endNode = EndFlowNode("endNode")
 
         val expression = EqualToExpression(ConstantValueExpression(42), ConstantValueExpression(42))
-        val conditionalNode = ConditionalFlowNode("conditionalNode", listOf(FlowLink(endNode)), expression)
+        val conditionalNode = ConditionalFlowNode("conditionalNode", listOf(FlowLink(endNode, true), FlowLink(endNode, false)), expression)
         val startNode = StartFlowNode("startNode", listOf(FlowLink(conditionalNode)))
 
         assertThat(flow.name).isEqualTo("conditionalFlow")
@@ -147,7 +157,7 @@ class FlowFactoryTest {
             )
         )
 
-        val conditionalNode = ConditionalFlowNode("conditionalNode", listOf(FlowLink(endNode)), expression)
+        val conditionalNode = ConditionalFlowNode("conditionalNode", listOf(FlowLink(endNode, true), FlowLink(endNode, false)), expression)
         val startNode = StartFlowNode("startNode", listOf(FlowLink(conditionalNode)))
 
         assertThat(flow.name).isEqualTo("nestedConditionalFlow")

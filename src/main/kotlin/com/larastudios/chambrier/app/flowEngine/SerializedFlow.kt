@@ -34,9 +34,16 @@ data class SerializedEndFlowNode(
 
 data class SerializedConditionalFlowNode(
     override val id: String,
-    override val outgoingNode: String?,
-    val condition: Expression
-) : SerializedFlowNode
+    val outgoingNodes: List<SerializedFlowLink>,
+    val condition: Expression,
+) : SerializedFlowNode {
+    override val outgoingNode: String? = null
+}
+
+data class SerializedFlowLink(
+    val node: String,
+    val value: Any?
+)
 
 data class SerializedActionFlowNode(
     override val id: String,

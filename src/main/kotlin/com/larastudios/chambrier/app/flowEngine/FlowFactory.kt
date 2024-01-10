@@ -41,7 +41,7 @@ class FlowFactory(private val objectMapper: ObjectMapper, private val expression
             val serializedNode = nodesToVisit.removeLast()
 
             val incomingNodes = serializedFlow.nodes
-                .filter { it.outgoingNode == serializedNode.id }
+                .filter { it.outgoingNode == serializedNode.id || it is SerializedConditionalFlowNode && it.outgoingNodes.any { it.node == serializedNode.id } }
 
             if (serializedNode !is SerializedStartFlowNode && incomingNodes.isEmpty()) {
                 throw NoConnectingNodeException("No links found to node '${serializedNode.id}' in flow '${serializedFlow.name}'")
@@ -72,6 +72,13 @@ class FlowFactory(private val objectMapper: ObjectMapper, private val expression
             val node = flowNodeMap[serializedNode.outgoingNode]
                 ?: throw MissingNodeException("Node '${serializedNode.id}' has a missing outgoing node to '${serializedNode.outgoingNode}'")
             return listOf(FlowLink(node))
+        }
+        if (serializedNode is SerializedConditionalFlowNode) {
+            return serializedNode.outgoingNodes.map {
+                val node = flowNodeMap[it.node]
+                    ?: throw MissingNodeException("Node '${serializedNode.id}' has a missing outgoing node to '${it.node}'")
+                FlowLink(node, it.value)
+            }
         }
 
         return listOf()

@@ -16,7 +16,7 @@ interface FlowNode {
 
 data class FlowLink(
     val node: FlowNode,
-    val value: String? = null
+    val value: Any? = null
 )
 
 data class StartFlowNode(
