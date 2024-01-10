@@ -1,15 +1,20 @@
 package com.larastudios.chambrier.app.flowEngine
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.stereotype.Service
 
 @Service
 class FlowFactory(private val objectMapper: ObjectMapper) {
     fun fromJson(json: String): Flow {
-        val serializedFlow = objectMapper.readValue<SerializedFlow>(json)
+        val serializedFlow = try {
+            objectMapper.readValue<SerializedFlow>(json)
+        } catch (e: InvalidTypeIdException) {
+            throw UnknownNodeTypeException(e.typeId)
+        }
 
-        serializedFlow.nodes.count { it.type == "startFlowNode" }.let { numStartNodes ->
+        serializedFlow.nodes.count { it is SerializedStartFlowNode }.let { numStartNodes ->
             if (numStartNodes == 0) {
                 throw MissingNodeException("No start node found")
             }
@@ -18,12 +23,12 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
             }
         }
 
-        val endNodes = serializedFlow.nodes.filter { it.type == "endFlowNode" }
+        val endNodes = serializedFlow.nodes.filterIsInstance<SerializedEndFlowNode>()
         if (endNodes.isEmpty()) {
             throw MissingNodeException("No end nodes found")
         }
 
-        val nodesToVisit = ArrayDeque(endNodes)
+        val nodesToVisit = ArrayDeque<SerializedFlowNode>(endNodes)
         val flowNodeMap = mutableMapOf<String, FlowNode>()
 
         while (nodesToVisit.isNotEmpty()) {
@@ -32,7 +37,7 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
             val incomingNodes = serializedFlow.nodes
                 .filter { it.outgoingNode == serializedNode.id }
 
-            if (serializedNode.type != "startFlowNode" && incomingNodes.isEmpty()) {
+            if (serializedNode !is SerializedStartFlowNode && incomingNodes.isEmpty()) {
                 throw NoConnectingNodeException("No links found to node '${serializedNode.id}' in flow '${serializedFlow.name}'")
             }
 
@@ -67,10 +72,10 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
     }
 
     private fun SerializedFlowNode.toFlowNode(outgoingNodes: List<FlowLink>): FlowNode =
-        when (type) {
-            "startFlowNode" -> StartFlowNode(id, outgoingNodes)
-            "endFlowNode" -> EndFlowNode(id)
-            else -> throw UnknownNodeTypeException(type)
+        when (this) {
+            is SerializedStartFlowNode -> StartFlowNode(id, outgoingNodes)
+            is SerializedEndFlowNode -> EndFlowNode(id)
+            is SerializedActionFlowNode -> ActionFlowNode(id, outgoingNodes, DoNothingAction)
         }
 }
 

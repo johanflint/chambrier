@@ -8,7 +8,10 @@
     },
     {
       "id": "endNode",
-      "type": "unknownNode"
+      "type": "actionNode",
+      "action": {
+        "type": "doNothing"
+      }
     }
   ]
 }

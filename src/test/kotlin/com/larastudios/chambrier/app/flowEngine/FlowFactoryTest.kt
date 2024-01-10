@@ -8,6 +8,7 @@ import org.springframework.core.io.ClassPathResource
 
 @SpringBootTest
 class FlowFactoryTest {
+    val unknownNodeTypeFlow = ClassPathResource("flows/invalid/unknownNodeTypeFlow.json").getContentAsString(Charsets.UTF_8)
     val multipleStartNodesFlow = ClassPathResource("flows/invalid/multipleStartNodesFlow.json").getContentAsString(Charsets.UTF_8)
     val missingEndNodeFlow = ClassPathResource("flows/invalid/missingEndNodeFlow.json").getContentAsString(Charsets.UTF_8)
     val unconnectedNodeFlow = ClassPathResource("flows/invalid/unconnectedNodeFlow.json").getContentAsString(Charsets.UTF_8)
@@ -17,6 +18,15 @@ class FlowFactoryTest {
 
     @Autowired
     lateinit var factory: FlowFactory
+
+    @Test
+    fun `throws an exception if an unknown node type is found`() {
+        assertThatExceptionOfType(UnknownNodeTypeException::class.java)
+            .isThrownBy {
+                factory.fromJson(unknownNodeTypeFlow)
+            }
+            .withMessage("unknownNode")
+    }
 
     @Test
     fun `throws an exception if no start node is found`() {

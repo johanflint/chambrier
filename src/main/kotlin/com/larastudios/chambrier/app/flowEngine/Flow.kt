@@ -26,3 +26,14 @@ data class EndFlowNode(
 ) : FlowNode {
     override val outgoingNodes: List<FlowLink> = listOf()
 }
+
+data class ActionFlowNode(
+    override val id: String,
+    override val outgoingNodes: List<FlowLink>,
+    val action: Action
+) : FlowNode
+
+
+interface Action
+
+data object DoNothingAction : Action

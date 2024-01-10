@@ -12,7 +12,10 @@
     },
     {
       "id": "unusedEndNode",
-      "type": "unknownNode"
+      "type": "actionNode",
+      "action": {
+        "type": "doNothing"
+      }
     }
   ]
 }
