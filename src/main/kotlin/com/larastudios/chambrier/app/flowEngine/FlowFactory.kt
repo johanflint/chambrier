@@ -22,7 +22,7 @@ class FlowFactory(private val objectMapper: ObjectMapper, private val expression
 
         serializedFlow.nodes.count { it is SerializedStartFlowNode }.let { numStartNodes ->
             if (numStartNodes == 0) {
-                throw MissingNodeException("No start node found")
+                throw MissingStartNodeException()
             }
             if (numStartNodes > 1) {
                 throw TooManyStartNodesException("Only one start node is allowed, found $numStartNodes")
@@ -31,7 +31,7 @@ class FlowFactory(private val objectMapper: ObjectMapper, private val expression
 
         val endNodes = serializedFlow.nodes.filterIsInstance<SerializedEndFlowNode>()
         if (endNodes.isEmpty()) {
-            throw MissingNodeException("No end nodes found")
+            throw MissingEndNodeException()
         }
 
         val nodesToVisit = ArrayDeque<SerializedFlowNode>(endNodes)
@@ -70,14 +70,15 @@ class FlowFactory(private val objectMapper: ObjectMapper, private val expression
     ): List<FlowLink> {
         if (serializedNode.outgoingNode != null) {
             val node = flowNodeMap[serializedNode.outgoingNode]
-                ?: throw MissingNodeException("Node '${serializedNode.id}' has a missing outgoing node to '${serializedNode.outgoingNode}'")
+                ?: throw MissingNodeException(serializedNode.id, "${serializedNode.outgoingNode}")
             return listOf(FlowLink(node))
         }
         if (serializedNode is SerializedConditionalFlowNode) {
             return serializedNode.outgoingNodes.map {
                 val node = flowNodeMap[it.node]
-                    ?: throw MissingNodeException("Node '${serializedNode.id}' has a missing outgoing node to '${it.node}'")
-                FlowLink(node, it.value)
+                    ?: throw MissingNodeException(serializedNode.id, it.node)
+                val value = it.value ?: throw FlowLinkNullValueException("Flow link from node '${serializedNode.id}' to node '${it.node}' has value null")
+                FlowLink(node, value)
             }
         }
 
@@ -107,8 +108,11 @@ class FlowFactory(private val objectMapper: ObjectMapper, private val expression
 
 class TooManyStartNodesException(override val message: String?) : Exception(message)
 class NoConnectingNodeException(override val message: String?) : Exception(message)
-class MissingNodeException(override val message: String?) : Exception(message)
+class MissingNodeException(nodeId: String, outgoingNodeId: String) : Exception("Node '$nodeId' has a missing outgoing node to '$outgoingNodeId'")
+class MissingStartNodeException : Exception()
+class MissingEndNodeException : Exception()
 class UnusedNodesException(override val message: String?) : Exception(message)
 class UnknownNodeTypeException(override val message: String?) : Exception(message)
 class UnknownExpressionTypeException(override val message: String?) : Exception(message)
 class UnknownActionTypeException(override val message: String?) : Exception(message)
+class FlowLinkNullValueException(override val message: String?) : Exception(message)

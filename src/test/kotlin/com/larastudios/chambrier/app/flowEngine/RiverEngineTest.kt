@@ -1,8 +1,7 @@
 package com.larastudios.chambrier.app.flowEngine
 
-import io.mockk.justRun
-import io.mockk.mockk
-import io.mockk.verify
+import com.larastudios.chambrier.app.flowEngine.expression.*
+import io.mockk.*
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,5 +52,36 @@ class RiverEngineTest {
         engine.execute(flow)
 
         verify { action.execute() }
+    }
+
+    @Test
+    fun `executes a flow with a conditional node`() {
+        val endNode = EndFlowNode("endNode")
+
+        val logActionTrueSpy = spyk(LogAction("true"))
+        val logActionFalseSpy = spyk(LogAction("false"))
+
+        val logNodeTrue = ActionFlowNode("logNodeTrue", listOf(FlowLink(endNode)), logActionTrueSpy)
+        val logNodeFalse = ActionFlowNode("logNodeFalse", listOf(FlowLink(endNode)), logActionFalseSpy)
+
+        val expression = OrExpression(
+            AndExpression(
+                EqualToExpression(ConstantValueExpression(42), ConstantValueExpression(42)),
+                GreaterThanExpression(ConstantValueExpression(4), ConstantValueExpression(8)),
+            ),
+            AndExpression(
+                NotEqualToExpression(ConstantValueExpression(42), ConstantValueExpression(1337)),
+                LessThanExpression(ConstantValueExpression(4), ConstantValueExpression(8)),
+            )
+        )
+        val conditionalNode = ConditionalFlowNode("conditionalNode", listOf(FlowLink(logNodeTrue, true), FlowLink(logNodeFalse, false)), expression)
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(conditionalNode)))
+        val flow = Flow("flow", listOf(), startNode)
+
+        engine.execute(flow)
+
+        verify { logActionTrueSpy.execute() }
+        verify(exactly = 0) { logActionFalseSpy.execute() }
+        confirmVerified(logActionFalseSpy)
     }
 }

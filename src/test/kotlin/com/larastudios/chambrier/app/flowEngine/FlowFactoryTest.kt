@@ -37,11 +37,10 @@ class FlowFactoryTest {
     fun `throws an exception if no start node is found`() {
         val flow = """{ "name": "flow", "nodes": [] }"""
 
-        assertThatExceptionOfType(MissingNodeException::class.java)
+        assertThatExceptionOfType(MissingStartNodeException::class.java)
             .isThrownBy {
                 factory.fromJson(flow)
             }
-            .withMessage("No start node found")
     }
 
     @Test
@@ -55,11 +54,10 @@ class FlowFactoryTest {
 
     @Test
     fun `throws an exception if no end node is found`() {
-        assertThatExceptionOfType(MissingNodeException::class.java)
+        assertThatExceptionOfType(MissingEndNodeException::class.java)
             .isThrownBy {
                 factory.fromJson(missingEndNodeFlow)
             }
-            .withMessage("No end nodes found")
     }
 
     @Test
