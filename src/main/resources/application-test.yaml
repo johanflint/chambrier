@@ -1,0 +1,7 @@
+logging:
+  level:
+    root: info
+    com.larastudios: debug
+
+flows:
+  directory: .

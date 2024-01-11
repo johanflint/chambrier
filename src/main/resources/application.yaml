@@ -1,12 +1,17 @@
 logging:
   level:
     root: info
+    com.larastudios: debug
+    com.larastudios.chambrier.app.flowEngine: info
 
 spring:
   profiles:
     default: local
   codec:
     max-in-memory-size: 1MB
+
+flows:
+  directory: /etc/chambrier/flows
 
 hue:
   enabled: false

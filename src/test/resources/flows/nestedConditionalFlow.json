@@ -1,0 +1,82 @@
+{
+  "name": "nestedConditionalFlow",
+  "nodes": [
+    {
+      "id": "startNode",
+      "type": "startFlowNode",
+      "outgoingNode": "conditionalNode"
+    },
+    {
+      "id": "conditionalNode",
+      "type": "conditionalNode",
+      "outgoingNodes": [
+        {
+          "value": true,
+          "node": "endNode"
+        },
+        {
+          "value": false,
+          "node": "endNode"
+        }
+      ],
+      "condition": {
+        "type": "or",
+        "left": {
+          "type": "and",
+          "left": {
+            "type": "equalTo",
+            "left": {
+              "type": "constant",
+              "value": 42
+            },
+            "right": {
+              "type": "constant",
+              "value": 42
+            }
+          },
+          "right": {
+            "type": "greaterThan",
+            "left": {
+              "type": "constant",
+              "value": 4
+            },
+            "right": {
+              "type": "constant",
+              "value": 8
+            }
+          }
+        },
+        "right": {
+          "type": "and",
+          "left": {
+            "type": "notEqualTo",
+            "left": {
+              "type": "constant",
+              "value": 42
+            },
+            "right": {
+              "type": "constant",
+              "value": 1337
+            }
+          },
+          "right": {
+            "type": "lessThan",
+            "left": {
+              "type": "constant",
+              "value": 4
+            },
+            "right": {
+              "type": "constant",
+              "value": 8
+            }
+          }
+        },
+        "message": "Action is triggered"
+      }
+    },
+    {
+      "id": "endNode",
+      "type": "endFlowNode"
+    }
+  ]
+}

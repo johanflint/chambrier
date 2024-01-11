@@ -6,19 +6,28 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
+import org.springframework.context.annotation.Primary
 
 @Configuration
 class ObjectMapperConfiguration {
+    @Primary
     @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
     fun objectMapper(): ObjectMapper = JsonMapper.builder()
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .propertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy())
         .build()
         .registerKotlinModule()
         .registerModule(JavaTimeModule())
+
+    @Bean
+    @SnakeCased
+    fun snakeCasedObjectMapper(): ObjectMapper =
+        objectMapper().copy().setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy())
 }
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+annotation class SnakeCased
