@@ -24,7 +24,7 @@ class RiverEngine : FlowEngine {
             }
             is ConditionalFlowNode -> {
                 val result = evaluateExpression(node.condition)
-                logger.debug { "Expression result: $result" }
+                logger.debug { "Expression ${node.condition.stringify()} evaluated to '$result' (${result::class})" }
                 node.outgoingNodes.firstOrNull { it.value == result }
                     ?.node
                     ?: throw NoAcceptedOutgoingNodeException("Condition of node '${node.id}' evaluated to '$result', but no outgoing node has a matching value: ${node.outgoingNodes.joinToString(", ") { "${it.value}" }}")
