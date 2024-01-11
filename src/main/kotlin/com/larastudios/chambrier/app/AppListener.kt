@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.app
 
+import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -8,8 +9,20 @@ import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
 
 @Component
-class AppListener(val observers: List<Observer>, val store: Store) : ApplicationListener<ContextRefreshedEvent> {
+class AppListener(
+    val observers: List<Observer>,
+    val store: Store,
+    val flowLoader: FlowLoader,
+    val flowEngine: FlowEngine
+) : ApplicationListener<ContextRefreshedEvent> {
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
+        val flows = flowLoader.load()
+
+        store.state()
+            .doOnNext {
+                flows.forEach(flowEngine::execute)
+            }.subscribe()
+
         val events = Flux.merge(
             observers.map {
                 logger.info { "Starting ${it::class.simpleName}" }
