@@ -12,11 +12,6 @@ data class LightGet(
     val dimming: Dimming?,
 )
 
-data class Owner(
-    val rid: String,
-    val rtype: String,
-)
-
 data class On(val on: Boolean)
 
 data class Dimming(

@@ -18,6 +18,8 @@ class HueClient(webClient: WebClient) {
 
     fun retrieveLights(): Mono<LightsResponse> = service.lights()
 
+    fun retrieveButtons(): Mono<ButtonResponse> = service.buttons()
+
     @HttpExchange("/clip/v2/resource")
     interface Api {
         @GetExchange("/device")
@@ -25,5 +27,8 @@ class HueClient(webClient: WebClient) {
 
         @GetExchange("/light")
         fun lights(): Mono<LightsResponse>
+
+        @GetExchange("/button")
+        fun buttons(): Mono<ButtonResponse>
     }
 }
