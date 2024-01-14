@@ -21,44 +21,16 @@ class HueObserver(val client: HueClient) : Observer {
     override fun observe(): Flux<Event> {
         logger.info { "Retrieve Hue devices..." }
         val devices = client.retrieveDevices()
-            .flatMap {
-                if (it.errors.isNotEmpty()) {
-                    val message = it.errors.joinToString(separator = "\n") { it.description }
-                    logger.warn { "Retrieve Hue devices... failed: $message" }
-                    Mono.error(ObservationException(message))
-                } else {
-                    logger.info { "Retrieve Hue devices... OK, ${it.data.size} found" }
-                    Mono.just(it.data)
-                }
-            }
+            .flatMap { it.extractData("devices") }
             .map { it.associateBy { device -> device.id } }
 
         logger.info { "Retrieve Hue lights..." }
         val lights = client.retrieveLights()
-            .flatMap {
-                if (it.errors.isNotEmpty()) {
-                    val message = it.errors.joinToString(separator = "\n") { it.description }
-                    logger.warn { "Retrieve Hue lights... failed: $message" }
-                    Mono.error(ObservationException(message))
-                } else {
-                    logger.info { "Retrieve Hue lights... OK, ${it.data.size} found" }
-                    Mono.just(it.data)
-                }
-            }
+            .flatMap { it.extractData("lights") }
 
         logger.info { "Retrieve Hue switches..." }
         val buttons = client.retrieveButtons()
-            .flatMap {
-                if (it.errors.isNotEmpty()) {
-                    val message = it.errors.joinToString(separator = "\n") { it.description }
-                    logger.warn { "Retrieve Hue switches... failed: $message" }
-                    Mono.error(ObservationException(message))
-                } else {
-                    val switches = it.data.map { it.owner.rid }.toSet()
-                    logger.info { "Retrieve Hue switches... OK, ${switches.size} found" }
-                    Mono.just(it.data)
-                }
-            }
+            .flatMap { it.extractData("switches") }
 
         return Mono.zip(devices, lights, buttons)
             .map { (deviceMap, lights, buttons) ->
@@ -94,6 +66,16 @@ class HueObserver(val client: HueClient) : Observer {
             .map<Event> { DiscoveredDevices(it) }
             .flux()
     }
+
+    private fun <T> HueResponse<T>.extractData(type: String): Mono<List<T>> =
+        if (errors.isNotEmpty()) {
+            val message = errors.joinToString(separator = "\n") { it.description }
+            logger.warn { "Retrieve Hue $type... failed: $message" }
+            Mono.error(ObservationException(message))
+        } else {
+            logger.info { "Retrieve Hue $type... OK, ${data.size} found" }
+            Mono.just(data)
+        }
 
     companion object {
         private val logger = KotlinLogging.logger {}
