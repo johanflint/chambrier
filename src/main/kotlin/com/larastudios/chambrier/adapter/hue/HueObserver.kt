@@ -2,8 +2,6 @@ package com.larastudios.chambrier.adapter.hue
 
 import com.larastudios.chambrier.app.ObservationException
 import com.larastudios.chambrier.app.Observer
-import com.larastudios.chambrier.app.domain.Device
-import com.larastudios.chambrier.app.domain.DeviceType
 import com.larastudios.chambrier.app.domain.DiscoveredDevices
 import com.larastudios.chambrier.app.domain.Event
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -34,32 +32,8 @@ class HueObserver(val client: HueClient) : Observer {
 
         return Mono.zip(devices, lights, buttons)
             .map { (deviceMap, lights, buttons) ->
-                val lightDevices = lights.map { light ->
-                    val deviceGet = deviceMap[light.owner.rid] ?: throw ObservationException("")
-
-                    Device(
-                        deviceGet.id,
-                        DeviceType.Light,
-                        deviceGet.productData.manufacturerName,
-                        deviceGet.productData.modelId,
-                        deviceGet.productData.productName,
-                        deviceGet.metadata.name,
-                        mapOf()
-                    )
-                }
-
-                val uniqueButtonDevices = buttons.map { it.owner.rid }.toSet().mapNotNull { deviceMap[it] }
-                val switchDevices = uniqueButtonDevices.map { deviceGet ->
-                    Device(
-                        deviceGet.id,
-                        DeviceType.Switch,
-                        deviceGet.productData.manufacturerName,
-                        deviceGet.productData.modelId,
-                        deviceGet.productData.productName,
-                        deviceGet.metadata.name,
-                        mapOf()
-                    )
-                }
+                val lightDevices = mapLights(lights, deviceMap)
+                val switchDevices = mapSwitches(buttons, deviceMap)
 
                 lightDevices + switchDevices
             }
