@@ -1,10 +1,5 @@
 package com.larastudios.chambrier.adapter
 
-data class LightsResponse(
-    val data: List<LightGet>,
-    val errors: List<HueError>,
-)
-
 data class LightGet(
     val id: String,
     val owner: Owner,

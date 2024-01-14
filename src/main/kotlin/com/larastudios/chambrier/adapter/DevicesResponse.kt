@@ -1,10 +1,5 @@
 package com.larastudios.chambrier.adapter
 
-data class DevicesResponse(
-    val data: List<DeviceGet>,
-    val errors: List<HueError>,
-)
-
 data class DeviceGet(
     val id: String,
     val productData: ProductData,

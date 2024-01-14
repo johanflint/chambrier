@@ -2,11 +2,6 @@ package com.larastudios.chambrier.adapter
 
 import java.time.LocalDate
 
-data class ButtonResponse(
-    val data: List<ButtonGet>,
-    val errors: List<HueError>,
-)
-
 data class ButtonGet(
     val id: String,
     val owner: Owner,
