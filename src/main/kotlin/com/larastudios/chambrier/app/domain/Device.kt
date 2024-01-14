@@ -19,4 +19,5 @@ interface Property {
 
 enum class DeviceType {
     Light,
+    Switch,
 }

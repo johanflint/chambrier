@@ -13,7 +13,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-
+import reactor.kotlin.core.util.function.component3
 
 @Service
 @ConditionalOnProperty("hue.enabled")
@@ -46,9 +46,23 @@ class HueObserver(val client: HueClient) : Observer {
                 }
             }
 
-        return Mono.zip(devices, lights)
-            .map { (deviceMap, lights) ->
-                lights.map { light ->
+        logger.info { "Retrieve Hue switches..." }
+        val buttons = client.retrieveButtons()
+            .flatMap {
+                if (it.errors.isNotEmpty()) {
+                    val message = it.errors.joinToString(separator = "\n") { it.description }
+                    logger.warn { "Retrieve Hue switches... failed: $message" }
+                    Mono.error(ObservationException(message))
+                } else {
+                    val switches = it.data.map { it.owner.rid }.toSet()
+                    logger.info { "Retrieve Hue switches... OK, ${switches.size} found" }
+                    Mono.just(it.data)
+                }
+            }
+
+        return Mono.zip(devices, lights, buttons)
+            .map { (deviceMap, lights, buttons) ->
+                val lightDevices = lights.map { light ->
                     val deviceGet = deviceMap[light.owner.rid] ?: throw ObservationException("")
 
                     Device(
@@ -61,6 +75,21 @@ class HueObserver(val client: HueClient) : Observer {
                         mapOf()
                     )
                 }
+
+                val uniqueButtonDevices = buttons.map { it.owner.rid }.toSet().mapNotNull { deviceMap[it] }
+                val switchDevices = uniqueButtonDevices.map { deviceGet ->
+                    Device(
+                        deviceGet.id,
+                        DeviceType.Switch,
+                        deviceGet.productData.manufacturerName,
+                        deviceGet.productData.modelId,
+                        deviceGet.productData.productName,
+                        deviceGet.metadata.name,
+                        mapOf()
+                    )
+                }
+
+                lightDevices + switchDevices
             }
             .map<Event> { DiscoveredDevices(it) }
             .flux()
