@@ -1,4 +1,4 @@
-package com.larastudios.chambrier.adapter
+package com.larastudios.chambrier.adapter.hue
 
 import com.larastudios.chambrier.app.ObservationException
 import com.larastudios.chambrier.app.Observer

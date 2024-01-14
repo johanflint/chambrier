@@ -1,4 +1,4 @@
-package com.larastudios.chambrier.adapter
+package com.larastudios.chambrier.adapter.hue
 
 import java.time.LocalDate
 

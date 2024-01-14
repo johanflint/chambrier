@@ -1,4 +1,4 @@
-package com.larastudios.chambrier.adapter
+package com.larastudios.chambrier.adapter.hue
 
 data class LightGet(
     val id: String,

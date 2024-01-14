@@ -1,4 +1,4 @@
-package com.larastudios.chambrier.adapter
+package com.larastudios.chambrier.adapter.hue
 
 data class DeviceGet(
     val id: String,
