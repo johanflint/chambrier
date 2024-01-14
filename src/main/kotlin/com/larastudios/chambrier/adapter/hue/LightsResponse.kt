@@ -1,20 +1,10 @@
-package com.larastudios.chambrier.adapter
-
-data class LightsResponse(
-    val data: List<LightGet>,
-    val errors: List<HueError>,
-)
+package com.larastudios.chambrier.adapter.hue
 
 data class LightGet(
     val id: String,
     val owner: Owner,
     val on: On,
     val dimming: Dimming?,
-)
-
-data class Owner(
-    val rid: String,
-    val rtype: String,
 )
 
 data class On(val on: Boolean)

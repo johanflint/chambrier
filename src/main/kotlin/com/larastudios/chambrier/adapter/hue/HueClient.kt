@@ -1,4 +1,4 @@
-package com.larastudios.chambrier.adapter
+package com.larastudios.chambrier.adapter.hue
 
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -14,16 +14,21 @@ class HueClient(webClient: WebClient) {
         .build()
         .createClient(Api::class.java)
 
-    fun retrieveDevices(): Mono<DevicesResponse> = service.devices()
+    fun retrieveDevices(): Mono<HueResponse<DeviceGet>> = service.devices()
 
-    fun retrieveLights(): Mono<LightsResponse> = service.lights()
+    fun retrieveLights(): Mono<HueResponse<LightGet>> = service.lights()
+
+    fun retrieveButtons(): Mono<HueResponse<ButtonGet>> = service.buttons()
 
     @HttpExchange("/clip/v2/resource")
     interface Api {
         @GetExchange("/device")
-        fun devices(): Mono<DevicesResponse>
+        fun devices(): Mono<HueResponse<DeviceGet>>
 
         @GetExchange("/light")
-        fun lights(): Mono<LightsResponse>
+        fun lights(): Mono<HueResponse<LightGet>>
+
+        @GetExchange("/button")
+        fun buttons(): Mono<HueResponse<ButtonGet>>
     }
 }
