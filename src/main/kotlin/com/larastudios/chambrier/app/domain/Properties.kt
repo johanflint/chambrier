@@ -8,10 +8,11 @@ interface Property {
 }
 
 enum class PropertyType {
-    On,
     Brightness,
+    Button,
     Color,
     ColorTemperature,
+    On,
 }
 
 data class BooleanProperty(
@@ -52,3 +53,22 @@ data class ColorProperty(
 data class CartesianCoordinate(val x: Double, val y: Double)
 
 data class Gamut(val red: CartesianCoordinate, val green: CartesianCoordinate, val blue: CartesianCoordinate)
+
+data class EnumProperty<T : Enum<T>>(
+    override val name: String,
+    override val type: PropertyType,
+    override val readonly: Boolean,
+    val values: List<T>,
+    val value: T,
+    override val externalId: String? = null,
+) : Property
+
+enum class HueButtonState {
+    InitialPress,
+    Repeat,
+    ShortRelease,
+    LongRelease,
+    DoubleShortRelease,
+    LongPress,
+    Unknown
+}
