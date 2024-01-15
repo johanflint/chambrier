@@ -1,10 +1,8 @@
 package com.larastudios.chambrier.adapter.hue
 
 import com.larastudios.chambrier.app.ObservationException
-import com.larastudios.chambrier.app.domain.BooleanProperty
-import com.larastudios.chambrier.app.domain.Device
-import com.larastudios.chambrier.app.domain.DeviceType
-import com.larastudios.chambrier.app.domain.PropertyType
+import com.larastudios.chambrier.app.domain.*
+import com.larastudios.chambrier.app.domain.Unit
 
 fun mapLights(lights: List<LightGet>, deviceMap: Map<String, DeviceGet>): List<Device> =
     lights.map { light ->
@@ -18,6 +16,19 @@ fun mapLights(lights: List<LightGet>, deviceMap: Map<String, DeviceGet>): List<D
             externalId = light.id
         )
 
+        val brightnessProperty = light.dimming?.let {
+            NumberProperty(
+                "brightness",
+                PropertyType.Brightness,
+                readonly = false,
+                unit = Unit.Percentage,
+                value = it.brightness,
+                minimum = it.minDimLevel ?: 0,
+                maximum = 100,
+            )
+        }
+
+        val properties = listOfNotNull(onProperty, brightnessProperty).associateBy { it.name }
         Device(
             deviceGet.id,
             DeviceType.Light,
@@ -25,8 +36,6 @@ fun mapLights(lights: List<LightGet>, deviceMap: Map<String, DeviceGet>): List<D
             deviceGet.productData.modelId,
             deviceGet.productData.productName,
             deviceGet.metadata.name,
-            mapOf(
-                onProperty.name to onProperty
-            )
+            properties,
         )
     }
