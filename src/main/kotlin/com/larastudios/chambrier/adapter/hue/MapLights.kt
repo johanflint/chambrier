@@ -28,7 +28,23 @@ fun mapLights(lights: List<LightGet>, deviceMap: Map<String, DeviceGet>): List<D
             )
         }
 
-        val properties = listOfNotNull(onProperty, brightnessProperty).associateBy { it.name }
+        val colorProperty = light.color?.let {
+            ColorProperty(
+                "color",
+                PropertyType.Color,
+                readonly = false,
+                xy = CartesianCoordinate(it.xy.x, it.xy.y),
+                gamut = it.gamut?.let {
+                    Gamut(
+                        red = CartesianCoordinate(it.red.x, it.red.y),
+                        green = CartesianCoordinate(it.green.x, it.green.y),
+                        blue = CartesianCoordinate(it.blue.x, it.blue.y),
+                    )
+                }
+            )
+        }
+
+        val properties = listOfNotNull(onProperty, brightnessProperty, colorProperty).associateBy { it.name }
         Device(
             deviceGet.id,
             DeviceType.Light,

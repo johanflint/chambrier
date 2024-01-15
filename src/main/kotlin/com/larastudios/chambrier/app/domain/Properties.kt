@@ -10,6 +10,7 @@ interface Property {
 enum class PropertyType {
     On,
     Brightness,
+    Color,
 }
 
 data class BooleanProperty(
@@ -37,3 +38,16 @@ enum class Unit(val symbol: String) {
     DegreesCelsius("°C"),
     Kelvin("K")
 }
+
+data class ColorProperty(
+    override val name: String,
+    override val type: PropertyType,
+    override val readonly: Boolean,
+    val xy: CartesianCoordinate,
+    val gamut: Gamut?,
+    override val externalId: String? = null,
+) : Property
+
+data class CartesianCoordinate(val x: Double, val y: Double)
+
+data class Gamut(val red: CartesianCoordinate, val green: CartesianCoordinate, val blue: CartesianCoordinate)
