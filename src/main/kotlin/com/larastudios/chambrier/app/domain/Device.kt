@@ -11,12 +11,6 @@ data class Device(
     val externalId: String? = null,
 )
 
-interface Property {
-    val name: String
-    val readonly: Boolean
-    val externalId: String?
-}
-
 enum class DeviceType {
     Light,
     Switch,
