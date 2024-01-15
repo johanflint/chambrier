@@ -11,6 +11,7 @@ enum class PropertyType {
     On,
     Brightness,
     Color,
+    ColorTemperature,
 }
 
 data class BooleanProperty(

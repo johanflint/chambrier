@@ -3,6 +3,7 @@ package com.larastudios.chambrier.adapter.hue
 import com.larastudios.chambrier.app.ObservationException
 import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.domain.Unit
+import kotlin.math.max
 
 fun mapLights(lights: List<LightGet>, deviceMap: Map<String, DeviceGet>): List<Device> =
     lights.map { light ->
@@ -44,7 +45,21 @@ fun mapLights(lights: List<LightGet>, deviceMap: Map<String, DeviceGet>): List<D
             )
         }
 
-        val properties = listOfNotNull(onProperty, brightnessProperty, colorProperty).associateBy { it.name }
+        val colorTemperatureProperty = light.colorTemperature?.let {
+            NumberProperty(
+                "colorTemperature",
+                PropertyType.ColorTemperature,
+                readonly = false,
+                unit = Unit.Kelvin,
+                value = mirekToKelvin(max(it.mirek, it.mirekSchema.mirekMinimum)),
+                minimum = mirekToKelvin(it.mirekSchema.mirekMaximum), // Not a bug: mirek is inverse to K
+                maximum = mirekToKelvin(it.mirekSchema.mirekMinimum),
+            )
+        }
+
+        val properties = listOfNotNull(onProperty, brightnessProperty, colorProperty, colorTemperatureProperty)
+            .associateBy { it.name }
+
         Device(
             deviceGet.id,
             DeviceType.Light,
