@@ -1,15 +1,21 @@
 package com.larastudios.chambrier.adapter.hue
 
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.MediaType
+import org.springframework.http.codec.ServerSentEvent
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.support.WebClientAdapter
 import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.HttpExchange
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.util.retry.Retry
+import java.time.Duration
 
 @Service
-class HueClient(webClient: WebClient) {
+class HueClient(private val webClient: WebClient) {
     private val service = HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient))
         .build()
         .createClient(Api::class.java)
@@ -19,6 +25,18 @@ class HueClient(webClient: WebClient) {
     fun retrieveLights(): Mono<HueResponse<LightGet>> = service.lights()
 
     fun retrieveButtons(): Mono<HueResponse<ButtonGet>> = service.buttons()
+
+    fun sse(): Flux<ServerSentEvent<String>> {
+        val type = object : ParameterizedTypeReference<ServerSentEvent<String>>() {}
+        return webClient
+            .get()
+            .uri("/eventstream/clip/v2")
+            .accept(MediaType.TEXT_EVENT_STREAM)
+            .retrieve()
+            .bodyToFlux(type)
+            .timeout(Duration.ofMinutes(5))
+            .retryWhen(Retry.backoff(Long.MAX_VALUE, Duration.ofMillis(500)).maxBackoff(Duration.ofMinutes(1)))
+    }
 
     @HttpExchange("/clip/v2/resource")
     interface Api {

@@ -30,6 +30,20 @@ class HueObserver(val client: HueClient) : Observer {
         val buttons = client.retrieveButtons()
             .flatMap { it.extractData("switches") }
 
+        val sseStream = client.sse()
+        sseStream
+            .take(1)
+            .handle { event, sink ->
+                if (event.comment() != "hi" || event.data() != null) {
+                    sink.error(IllegalArgumentException("Unexpected first event"))
+                } else {
+                    sink.next(event)
+                }
+            }
+            .concatWith(sseStream.skip(1))
+            .log()
+            .subscribe()
+
         return Mono.zip(devices, lights, buttons)
             .map { (deviceMap, lights, buttons) ->
                 val lightDevices = mapLights(lights, deviceMap)
