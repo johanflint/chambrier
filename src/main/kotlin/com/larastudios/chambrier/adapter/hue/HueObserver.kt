@@ -41,6 +41,15 @@ class HueObserver(val client: HueClient) : Observer {
                 }
             }
             .concatWith(sseStream.skip(1))
+            .flatMapIterable { it.data() ?: listOf() } // Events may not have data
+            .filter { it.type == SseDataType.Update }
+            .flatMapIterable { it.data }
+            .map {
+                when (it) {
+                    is ChangedLightProperty -> mapChangedLightProperty(it).toList()
+                    else -> listOf()
+                }
+            }
             .log()
             .subscribe()
 
