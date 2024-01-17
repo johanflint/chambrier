@@ -12,6 +12,7 @@ class ChangedPropertyDeserializer : StdDeserializer<ChangedProperty>(ChangedProp
         val node: JsonNode = p.codec.readTree(p)
         return when (val type = node.get("type").asText()) {
             "light" -> p.codec.treeToValue(node, ChangedLightProperty::class.java)
+            "button" -> p.codec.treeToValue(node, ChangedButtonProperty::class.java)
             else -> UnknownChangedProperty(
                 id = node.get("id").asText(),
                 type = type,
