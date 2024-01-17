@@ -47,6 +47,7 @@ class HueObserver(val client: HueClient) : Observer {
             .map {
                 when (it) {
                     is ChangedLightProperty -> mapChangedLightProperty(it).toList()
+                    is ChangedButtonProperty -> mapChangedButtonProperty(it).toList()
                     else -> listOf()
                 }
             }
