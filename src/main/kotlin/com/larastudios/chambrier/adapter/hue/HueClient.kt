@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.adapter.hue
 
+import com.larastudios.chambrier.adapter.hue.sse.SseData
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent

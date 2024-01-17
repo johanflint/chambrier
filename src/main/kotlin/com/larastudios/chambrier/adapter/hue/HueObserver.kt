@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.adapter.hue
 
+import com.larastudios.chambrier.adapter.hue.sse.*
 import com.larastudios.chambrier.app.ObservationException
 import com.larastudios.chambrier.app.Observer
 import com.larastudios.chambrier.app.domain.DiscoveredDevices

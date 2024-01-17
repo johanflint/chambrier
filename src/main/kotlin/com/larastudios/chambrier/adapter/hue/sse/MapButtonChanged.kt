@@ -1,5 +1,6 @@
-package com.larastudios.chambrier.adapter.hue
+package com.larastudios.chambrier.adapter.hue.sse
 
+import com.larastudios.chambrier.adapter.hue.toHueButtonState
 import com.larastudios.chambrier.app.domain.EnumPropertyChanged
 import com.larastudios.chambrier.app.domain.Event
 

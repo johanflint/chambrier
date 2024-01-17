@@ -1,4 +1,4 @@
-package com.larastudios.chambrier.adapter.hue
+package com.larastudios.chambrier.adapter.hue.sse
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext

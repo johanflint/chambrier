@@ -1,4 +1,6 @@
-package com.larastudios.chambrier.adapter.hue
+package com.larastudios.chambrier.adapter.hue.sse
+
+import com.larastudios.chambrier.adapter.hue.*
 
 /**
  * Like [LightGet], but [ChangedLightProperty.on] is nullable.

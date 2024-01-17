@@ -1,8 +1,8 @@
 package com.larastudios.chambrier.adapter
 
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.larastudios.chambrier.adapter.hue.ChangedProperty
-import com.larastudios.chambrier.adapter.hue.ChangedPropertyDeserializer
+import com.larastudios.chambrier.adapter.hue.sse.ChangedProperty
+import com.larastudios.chambrier.adapter.hue.sse.ChangedPropertyDeserializer
 import org.springframework.stereotype.Component
 
 @Component

@@ -1,4 +1,7 @@
-package com.larastudios.chambrier.adapter.hue
+package com.larastudios.chambrier.adapter.hue.sse
+
+import com.larastudios.chambrier.adapter.hue.ButtonReport
+import com.larastudios.chambrier.adapter.hue.Owner
 
 /**
  * Like [ButtonGet], but [ButtonGet.metadata] is absent.

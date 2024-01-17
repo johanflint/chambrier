@@ -1,4 +1,4 @@
-package com.larastudios.chambrier.adapter.hue
+package com.larastudios.chambrier.adapter.hue.sse
 
 import com.larastudios.chambrier.app.domain.*
 
