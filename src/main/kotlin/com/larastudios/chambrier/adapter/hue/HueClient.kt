@@ -26,8 +26,8 @@ class HueClient(private val webClient: WebClient) {
 
     fun retrieveButtons(): Mono<HueResponse<ButtonGet>> = service.buttons()
 
-    fun sse(): Flux<ServerSentEvent<String>> {
-        val type = object : ParameterizedTypeReference<ServerSentEvent<String>>() {}
+    fun sse(): Flux<ServerSentEvent<List<SseData>>> {
+        val type = object : ParameterizedTypeReference<ServerSentEvent<List<SseData>>>() {}
         return webClient
             .get()
             .uri("/eventstream/clip/v2")
