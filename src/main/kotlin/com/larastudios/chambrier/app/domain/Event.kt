@@ -4,17 +4,22 @@ interface Event
 
 data class DiscoveredDevices(val devices: List<Device>) : Event
 
+interface PropertyChangedEvent : Event {
+    val deviceId: String
+    val propertyId: String
+}
+
 data class BooleanPropertyChanged(
-    val deviceId: String,
-    val propertyId: String,
+    override val deviceId: String,
+    override val propertyId: String,
     val value: Boolean,
-) : Event
+) : PropertyChangedEvent
 
 data class NumberPropertyChanged(
-    val deviceId: String,
-    val propertyId: String,
+    override val deviceId: String,
+    override val propertyId: String,
     val value: Number,
-) : Event
+) : PropertyChangedEvent
 
 data class ColorPropertyChanged(
     val deviceId: String,
