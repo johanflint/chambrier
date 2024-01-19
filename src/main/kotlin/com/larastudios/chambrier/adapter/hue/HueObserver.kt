@@ -32,7 +32,7 @@ class HueObserver(val client: HueClient) : Observer {
             .flatMap { it.extractData("switches") }
 
         val sseStream = client.sse()
-        sseStream
+        val eventStream = sseStream
             .take(1)
             .handle { event, sink ->
                 if (event.comment() != "hi" || event.data() != null) {
@@ -52,8 +52,7 @@ class HueObserver(val client: HueClient) : Observer {
                     else -> listOf()
                 }
             }
-            .log()
-            .subscribe()
+            .flatMapIterable { it }
 
         return Mono.zip(devices, lights, buttons)
             .map { (deviceMap, lights, buttons) ->
@@ -63,7 +62,7 @@ class HueObserver(val client: HueClient) : Observer {
                 lightDevices + switchDevices
             }
             .map<Event> { DiscoveredDevices(it) }
-            .flux()
+            .concatWith(eventStream)
     }
 
     private fun <T> HueResponse<T>.extractData(type: String): Mono<List<T>> =
