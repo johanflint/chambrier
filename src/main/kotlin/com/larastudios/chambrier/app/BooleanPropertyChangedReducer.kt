@@ -1,7 +1,8 @@
-package com.larastudios.chambrier.app.domain
+package com.larastudios.chambrier.app
 
 import arrow.optics.dsl.index
 import arrow.optics.typeclasses.Index
+import com.larastudios.chambrier.app.domain.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 

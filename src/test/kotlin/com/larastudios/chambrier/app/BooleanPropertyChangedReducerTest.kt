@@ -1,5 +1,6 @@
-package com.larastudios.chambrier.app.domain
+package com.larastudios.chambrier.app
 
+import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.lightDevice
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
