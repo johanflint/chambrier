@@ -12,8 +12,19 @@ import org.junit.jupiter.api.Test
 class PropertyChangedReducerTest {
     private val booleanProperty = BooleanProperty("on", PropertyType.On, readonly = false, value = true)
     private val numberProperty = NumberProperty("brightness", PropertyType.Brightness, readonly = false, Unit.Percentage, 42, null, null)
-
-    private val device: Device = lightDevice.copy(properties = mapOf(booleanProperty.name to booleanProperty, numberProperty.name to numberProperty))
+    private val gamut = Gamut(
+        red = CartesianCoordinate(0.1, 0.2),
+        green = CartesianCoordinate(0.3, 0.4),
+        blue = CartesianCoordinate(0.5, 0.6),
+    )
+    private val colorProperty = ColorProperty("color", PropertyType.Color, readonly = false, xy = CartesianCoordinate(0.01, 0.05), gamut = gamut)
+    private val device: Device = lightDevice.copy(
+        properties = mapOf(
+            booleanProperty.name to booleanProperty,
+            numberProperty.name to numberProperty,
+            colorProperty.name to colorProperty
+        )
+    )
     private val initialState: State = State(mapOf(device.id to device))
 
     @Test
@@ -36,6 +47,33 @@ class PropertyChangedReducerTest {
             .extractingByKey(device.id)
             .extracting { it.properties[numberProperty.name] }
             .isEqualTo(numberProperty.copy(value = 1337))
+    }
+
+    @Test
+    fun `reduces ColorPropertyChanged without gamut by updating the device's property`() {
+        val event = ColorPropertyChanged(device.id, colorProperty.name, CartesianCoordinate(0.90, 0.91), null)
+        val newState = PropertyChangedReducer().reduce(event, initialState)
+
+        assertThat(newState.devices)
+            .extractingByKey(device.id)
+            .extracting { it.properties[colorProperty.name] }
+            .isEqualTo(colorProperty.copy(xy = CartesianCoordinate(0.90, 0.91), gamut = null))
+    }
+
+    @Test
+    fun `reduces ColorPropertyChanged with gamut by updating the device's property`() {
+        val gamut = Gamut(
+            red = CartesianCoordinate(0.80, 0.81),
+            green = CartesianCoordinate(0.82, 0.83),
+            blue = CartesianCoordinate(0.84, 0.85),
+        )
+        val event = ColorPropertyChanged(device.id, colorProperty.name, CartesianCoordinate(0.90, 0.91), gamut)
+        val newState = PropertyChangedReducer().reduce(event, initialState)
+
+        assertThat(newState.devices)
+            .extractingByKey(device.id)
+            .extracting { it.properties[colorProperty.name] }
+            .isEqualTo(colorProperty.copy(xy = CartesianCoordinate(0.90, 0.91), gamut = gamut))
     }
 
     @Test

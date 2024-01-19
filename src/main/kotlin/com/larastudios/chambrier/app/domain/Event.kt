@@ -22,11 +22,11 @@ data class NumberPropertyChanged(
 ) : PropertyChangedEvent
 
 data class ColorPropertyChanged(
-    val deviceId: String,
-    val propertyId: String,
+    override val deviceId: String,
+    override val propertyId: String,
     val xy: CartesianCoordinate,
     val gamut: Gamut?,
-) : Event
+) : PropertyChangedEvent
 
 data class EnumPropertyChanged<T : Enum<T>>(
     val deviceId: String,

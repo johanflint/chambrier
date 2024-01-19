@@ -21,6 +21,12 @@ class PropertyChangedReducer : Reducer {
             }
         }
 
+        if (event is ColorPropertyChanged) {
+            return reducePropertyChangedEvent<ColorPropertyChanged, ColorProperty>(event, state, { p -> "${p.xy}" }) {
+                it.copy(xy = event.xy, gamut = event.gamut)
+            }
+        }
+
         return state
     }
 
