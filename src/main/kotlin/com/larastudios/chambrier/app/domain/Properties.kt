@@ -1,5 +1,7 @@
 package com.larastudios.chambrier.app.domain
 
+import arrow.optics.optics
+
 interface Property {
     val name: String
     val type: PropertyType
@@ -15,13 +17,16 @@ enum class PropertyType {
     On,
 }
 
+@optics
 data class BooleanProperty(
     override val name: String,
     override val type: PropertyType,
     override val readonly: Boolean,
     val value: Boolean,
     override val externalId: String? = null,
-) : Property
+) : Property {
+    companion object
+}
 
 data class NumberProperty(
     override val name: String,

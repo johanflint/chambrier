@@ -1,5 +1,7 @@
 package com.larastudios.chambrier.app.domain
 
+import arrow.optics.dsl.index
+import arrow.optics.typeclasses.Index
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 
@@ -15,22 +17,14 @@ class BooleanPropertyChangedReducer : Reducer {
 
             val property = device.properties[event.propertyId]
             if (property == null || property !is BooleanProperty) {
-                logger.warn { "Received BooleanPropertyChanged event for device '${device.id}', but for unknown property '${event.propertyId}': $event" }
+                logger.warn { "Received BooleanPropertyChanged event for device '${device.id}' (${device.name}), but for unknown property '${event.propertyId}': $event" }
                 return state
             }
 
-            logger.debug { "Set property '${property.name}' for device '${device.id}' to '${event.value}', was '${property.value}'" }
-
-            val updatedProperty = property.copy(value = event.value)
-            val updatedProperties = device.properties.toMutableMap().apply {
-                replace(updatedProperty.name, updatedProperty)
-            }.toMap()
-
-            val updatedDevice = device.copy(properties = updatedProperties)
-            val updatedDevices = state.devices.toMutableMap().apply {
-                replace(device.id, updatedDevice)
-            }.toMap()
-            return state.copy(devices = updatedDevices)
+            return State.devices.index(Index.map(), device.id)
+                .properties.index(Index.map(), property.name)
+                .set(state, property.copy(value = event.value))
+                .also { logger.debug { "Set property '${property.name}' for device '${device.id}' (${device.name}) to '${event.value}', was '${property.value}'" } }
         }
 
         return state
