@@ -18,11 +18,14 @@ class PropertyChangedReducerTest {
         blue = CartesianCoordinate(0.5, 0.6),
     )
     private val colorProperty = ColorProperty("color", PropertyType.Color, readonly = false, xy = CartesianCoordinate(0.01, 0.05), gamut = gamut)
+    private val enumProperty = EnumProperty("button", PropertyType.Button, readonly = true, values = HueButtonState.entries.toList(), value =  HueButtonState.InitialPress)
+
     private val device: Device = lightDevice.copy(
         properties = mapOf(
             booleanProperty.name to booleanProperty,
             numberProperty.name to numberProperty,
-            colorProperty.name to colorProperty
+            colorProperty.name to colorProperty,
+            enumProperty.name to enumProperty,
         )
     )
     private val initialState: State = State(mapOf(device.id to device))
@@ -77,6 +80,28 @@ class PropertyChangedReducerTest {
     }
 
     @Test
+    fun `reduces EnumPropertyChanged by updating the device's property`() {
+        val event = EnumPropertyChanged(device.id, enumProperty.name, HueButtonState.ShortRelease)
+        val newState = PropertyChangedReducer().reduce(event, initialState)
+
+        assertThat(newState.devices)
+            .extractingByKey(device.id)
+            .extracting { it.properties[enumProperty.name] }
+            .isEqualTo(enumProperty.copy(value = HueButtonState.ShortRelease))
+    }
+
+    @Test
+    fun `ignores EnumPropertyChanged by returning the unmodified state if the enum types do not match`() {
+        val event = EnumPropertyChanged(device.id, enumProperty.name, DifferentEnum.NotCool)
+        val newState = PropertyChangedReducer().reduce(event, initialState)
+
+        assertThat(newState.devices)
+            .extractingByKey(device.id)
+            .extracting { it.properties[enumProperty.name] }
+            .isEqualTo(enumProperty)
+    }
+
+    @Test
     fun `ignores the event by returning the unmodified state for an unknown device`() {
         val event = NumberPropertyChanged("unknown", numberProperty.name, 1337)
         val newState = PropertyChangedReducer().reduce(event, initialState)
@@ -100,3 +125,5 @@ class PropertyChangedReducerTest {
         assertThat(newState).isEqualTo(initialState)
     }
 }
+
+private enum class DifferentEnum { NotCool }

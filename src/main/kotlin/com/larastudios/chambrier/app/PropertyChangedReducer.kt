@@ -27,6 +27,23 @@ class PropertyChangedReducer : Reducer {
             }
         }
 
+        if (event is EnumPropertyChanged<*>) {
+            return reducePropertyChangedEvent<EnumPropertyChanged<*>, EnumProperty<*>>(event, state, { p -> "${p.value}" }) {
+                if (event.value::class == it.value::class) {
+                    val copy = it.copy()
+                    // Due to the generics constraint it will not compile in Kotlin, fall back to Java's reflection API as there is no setter in Kotlin for vals
+                    field.run {
+                        isAccessible = true
+                        set(copy, event.value)
+                        isAccessible = false
+                        copy
+                    }
+                } else {
+                    it
+                }
+            }
+        }
+
         return state
     }
 
@@ -63,6 +80,7 @@ class PropertyChangedReducer : Reducer {
     }
 
     companion object {
+        private val field = EnumProperty::class.java.getDeclaredField(EnumProperty<*>::value.name)
         private val logger = KotlinLogging.logger {}
     }
 }

@@ -29,7 +29,7 @@ data class ColorPropertyChanged(
 ) : PropertyChangedEvent
 
 data class EnumPropertyChanged<T : Enum<T>>(
-    val deviceId: String,
-    val propertyId: String,
+    override val deviceId: String,
+    override val propertyId: String,
     val value: T,
-) : Event
+) : PropertyChangedEvent
