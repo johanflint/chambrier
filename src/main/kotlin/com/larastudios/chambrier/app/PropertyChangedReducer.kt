@@ -39,6 +39,11 @@ class PropertyChangedReducer : Reducer {
                         copy
                     }
                 } else {
+                    logger.warn {
+                        val eventName = event::class.simpleName
+                        val device = state.devices[event.deviceId]
+                        "Received $eventName event for device '${device?.id}' (${device?.name}), but enum property '${it.name}' is of type '${it.value::class.simpleName}' and event of type '${event.value::class.simpleName}': $event"
+                    }
                     it
                 }
             }
