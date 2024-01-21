@@ -1,5 +1,8 @@
 package com.larastudios.chambrier.app.domain
 
+import arrow.optics.optics
+
+@optics
 data class Device(
     val id: String,
     val type: DeviceType,
@@ -9,7 +12,9 @@ data class Device(
     val name: String,
     val properties: Map<String, Property>,
     val externalId: String? = null,
-)
+) {
+    companion object
+}
 
 enum class DeviceType {
     Light,

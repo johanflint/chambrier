@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.2.1"
     id("io.spring.dependency-management") version "1.1.4"
+    id("com.google.devtools.ksp") version "1.9.21-1.0.16"
     kotlin("jvm") version "1.9.21"
     kotlin("plugin.spring") version "1.9.21"
 }
@@ -24,6 +25,11 @@ dependencies {
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+
+    // Arrow
+    implementation("io.arrow-kt:arrow-core:1.2.0")
+    implementation("io.arrow-kt:arrow-optics:1.2.0")
+    ksp("io.arrow-kt:arrow-optics-ksp-plugin:1.2.0")
 
     // Logging
     implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")

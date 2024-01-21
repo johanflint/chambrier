@@ -2,19 +2,15 @@ package com.larastudios.chambrier.app.flowEngine
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.larastudios.chambrier.app.flowEngine.expression.Expression
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 
 @Service
-class FlowFactory(private val objectMapper: ObjectMapper, private val expressionDeserializer: ExpressionDeserializer) {
+class FlowFactory(private val objectMapper: ObjectMapper) {
     fun fromJson(json: String): Flow {
         val serializedFlow = try {
-            objectMapper
-                .registerModule(SimpleModule().addDeserializer(Expression::class.java, expressionDeserializer))
-                .readValue<SerializedFlow>(json)
+            objectMapper.readValue<SerializedFlow>(json)
         } catch (e: InvalidTypeIdException) {
             logger.error(e) { "Unknown node type" }
             throw UnknownNodeTypeException(e.typeId)

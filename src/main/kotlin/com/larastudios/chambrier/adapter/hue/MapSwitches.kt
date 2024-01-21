@@ -29,7 +29,7 @@ fun mapSwitches(buttons: List<ButtonGet>, deviceMap: Map<String, DeviceGet>): Li
     }
 }
 
-private fun String?.toHueButtonState(): HueButtonState {
+fun String?.toHueButtonState(): HueButtonState {
     val value = this?.replace("_", "")?.lowercase()
     return HueButtonState.entries.firstOrNull { it.name.lowercase() == value } ?: HueButtonState.Unknown
 }

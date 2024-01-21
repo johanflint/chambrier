@@ -1,5 +1,9 @@
-package com.larastudios.chambrier.app.domain
+package com.larastudios.chambrier.app
 
+import com.larastudios.chambrier.app.domain.DiscoveredDevices
+import com.larastudios.chambrier.app.domain.Event
+import com.larastudios.chambrier.app.domain.Reducer
+import com.larastudios.chambrier.app.domain.State
 import org.springframework.stereotype.Component
 
 @Component

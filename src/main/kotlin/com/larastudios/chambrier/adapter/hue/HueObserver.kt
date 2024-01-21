@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.adapter.hue
 
+import com.larastudios.chambrier.adapter.hue.sse.*
 import com.larastudios.chambrier.app.ObservationException
 import com.larastudios.chambrier.app.Observer
 import com.larastudios.chambrier.app.domain.DiscoveredDevices
@@ -30,6 +31,29 @@ class HueObserver(val client: HueClient) : Observer {
         val buttons = client.retrieveButtons()
             .flatMap { it.extractData("switches") }
 
+        val sseStream = client.sse()
+        val eventStream = sseStream
+            .take(1)
+            .handle { event, sink ->
+                if (event.comment() != "hi" || event.data() != null) {
+                    sink.error(IllegalArgumentException("Unexpected first event"))
+                } else {
+                    sink.next(event)
+                }
+            }
+            .concatWith(sseStream.skip(1))
+            .flatMapIterable { it.data() ?: listOf() } // Events may not have data
+            .filter { it.type == SseDataType.Update }
+            .flatMapIterable { it.data }
+            .map {
+                when (it) {
+                    is ChangedLightProperty -> mapChangedLightProperty(it).toList()
+                    is ChangedButtonProperty -> mapChangedButtonProperty(it).toList()
+                    else -> listOf()
+                }
+            }
+            .flatMapIterable { it }
+
         return Mono.zip(devices, lights, buttons)
             .map { (deviceMap, lights, buttons) ->
                 val lightDevices = mapLights(lights, deviceMap)
@@ -38,7 +62,7 @@ class HueObserver(val client: HueClient) : Observer {
                 lightDevices + switchDevices
             }
             .map<Event> { DiscoveredDevices(it) }
-            .flux()
+            .concatWith(eventStream)
     }
 
     private fun <T> HueResponse<T>.extractData(type: String): Mono<List<T>> =
