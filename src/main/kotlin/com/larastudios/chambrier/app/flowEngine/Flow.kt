@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import com.larastudios.chambrier.app.domain.PropertyValue
 import com.larastudios.chambrier.app.flowEngine.expression.Expression
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -58,5 +59,11 @@ data class LogAction(val message: String) : Action {
 
     companion object {
         private val logger = KotlinLogging.logger {}
+    }
+}
+
+data class ControlDeviceAction(val deviceId: String, val property: Map<String, PropertyValue>): Action {
+    override fun execute() {
+        TODO("Not yet implemented")
     }
 }

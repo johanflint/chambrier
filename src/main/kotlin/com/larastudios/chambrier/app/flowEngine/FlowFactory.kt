@@ -90,6 +90,7 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
                 val action = when (this.action) {
                     is SerializedDoNothingAction -> DoNothingAction
                     is SerializedLogAction -> LogAction(this.action.message)
+                    is SerializedControlDeviceAction -> ControlDeviceAction(this.action.deviceId, this.action.property)
                     else -> throw UnknownActionTypeException(this::class.simpleName)
                 }
 

@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.*
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -20,6 +21,7 @@ class FlowFactoryTest {
     val logFlow = ClassPathResource("flows/logFlow.json").getContentAsString(Charsets.UTF_8)
     val conditionalFlow = ClassPathResource("flows/conditionalFlow.json").getContentAsString(Charsets.UTF_8)
     val nestedConditionalFlow = ClassPathResource("flows/nestedConditionalFlow.json").getContentAsString(Charsets.UTF_8)
+    val controlDeviceFlow = ClassPathResource("flows/controlDeviceFlow.json").getContentAsString(Charsets.UTF_8)
 
     @Autowired
     lateinit var factory: FlowFactory
@@ -116,6 +118,39 @@ class FlowFactoryTest {
             .contains(logNode)
             .contains(endNode)
             .hasSize(3)
+        assertThat(flow.startNode).isEqualTo(startNode)
+    }
+
+    @Test
+    fun `creates a flow with an action node of type control device`() {
+        val flow = factory.fromJson(controlDeviceFlow)
+
+        val endNode = EndFlowNode("endNode")
+        val propertyMap = mapOf(
+            "fan" to SetBooleanValue(true),
+            "on" to ToggleBooleanValue,
+            "brightness" to SetNumberValue(50),
+            "fanSpeed" to IncrementNumberValue(10),
+            "turnSpeed" to DecrementNumberValue(8),
+            "color" to SetColorValue(CartesianCoordinate(0.1, 0.2), null),
+            "colorWithGamut" to SetColorValue(
+                CartesianCoordinate(0.3, 0.4),
+                Gamut(
+                    red = CartesianCoordinate(0.5, 0.6),
+                    green = CartesianCoordinate(0.7, 0.8),
+                    blue = CartesianCoordinate(0.9, 1.0),
+                ),
+            ),
+            "button" to SetEnumValue(HueButtonState.ShortRelease)
+        )
+        val actionNode = ActionFlowNode("controlNode", listOf(FlowLink(endNode)), ControlDeviceAction("42", propertyMap))
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(actionNode)))
+
+        assertThat(flow.name).isEqualTo("controlDeviceFlow")
+        assertThat(flow.nodes)
+            .usingRecursiveComparison()
+            .ignoringCollectionOrder()
+            .isEqualTo(listOf(startNode, actionNode, endNode))
         assertThat(flow.startNode).isEqualTo(startNode)
     }
 
