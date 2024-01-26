@@ -55,6 +55,37 @@ class RiverEngineTest {
         verify { action.execute(Scope()) }
     }
 
+
+    @Test
+    fun `executes a control device action`() {
+        val endNode = EndFlowNode("endNode")
+        val propertyMap = mapOf(
+            "fan" to SetBooleanValue(true),
+            "on" to ToggleBooleanValue,
+            "brightness" to SetNumberValue(50),
+            "fanSpeed" to IncrementNumberValue(10),
+            "turnSpeed" to DecrementNumberValue(8),
+            "color" to SetColorValue(CartesianCoordinate(0.1, 0.2), null),
+            "colorWithGamut" to SetColorValue(
+                CartesianCoordinate(0.3, 0.4),
+                Gamut(
+                    red = CartesianCoordinate(0.5, 0.6),
+                    green = CartesianCoordinate(0.7, 0.8),
+                    blue = CartesianCoordinate(0.9, 1.0),
+                ),
+            ),
+            "button" to SetEnumValue(HueButtonState.ShortRelease)
+        )
+        val actionSpy = spyk(ControlDeviceAction("42", propertyMap))
+        val actionNode = ActionFlowNode("controlNode", listOf(FlowLink(endNode)), actionSpy)
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(actionNode)))
+        val flow = Flow("flow", listOf(), startNode)
+
+        engine.execute(flow)
+
+        verify { actionSpy.execute(any<Scope>()) }
+    }
+
     @Test
     fun `executes a flow with a conditional node`() {
         val endNode = EndFlowNode("endNode")

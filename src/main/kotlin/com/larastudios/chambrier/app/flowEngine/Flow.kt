@@ -64,6 +64,18 @@ data class LogAction(val message: String) : Action {
 
 data class ControlDeviceAction(val deviceId: String, val property: Map<String, PropertyValue>): Action {
     override fun execute(scope: Scope) {
-        TODO("Not yet implemented")
+        val commandMap: MutableMap<String, Map<String, PropertyValue>> = getCommandMap(scope.data) ?: mutableMapOf()
+        commandMap.compute(deviceId) { _, currentValue ->
+            currentValue?.plus(property) ?: property
+        }
+
+        scope.data[COMMAND_MAP] = commandMap
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun getCommandMap(data: MutableMap<String, Any>): MutableMap<String, Map<String, PropertyValue>>? = data[COMMAND_MAP] as? MutableMap<String, Map<String, PropertyValue>>
+
+    companion object {
+        const val COMMAND_MAP = "_commandMap"
     }
 }
