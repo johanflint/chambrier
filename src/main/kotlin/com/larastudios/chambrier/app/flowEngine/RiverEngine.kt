@@ -5,14 +5,16 @@ import org.springframework.stereotype.Service
 
 @Service
 class RiverEngine : FlowEngine {
-    override fun execute(flow: Flow) {
+    override fun execute(flow: Flow): ExecutedFlowReport {
         logger.debug { "Executing flow ${flow.name}..." }
         val start = System.currentTimeMillis()
 
-        executeNode(flow.startNode, Scope(mutableMapOf()))
+        val scope = Scope(mutableMapOf())
+        executeNode(flow.startNode, scope)
 
         val durationInMs = System.currentTimeMillis() - start
         logger.debug { "Executing flow ${flow.name}... OK, took ${durationInMs}ms" }
+        return ExecutedFlowReport(scope.data)
     }
 
     private tailrec fun executeNode(node: FlowNode, scope: Scope) {

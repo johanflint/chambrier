@@ -81,9 +81,13 @@ class RiverEngineTest {
         val startNode = StartFlowNode("startNode", listOf(FlowLink(actionNode)))
         val flow = Flow("flow", listOf(), startNode)
 
-        engine.execute(flow)
+        val report = engine.execute(flow)
 
         verify { actionSpy.execute(any<Scope>()) }
+        assertThat(report.scope).containsKey(ControlDeviceAction.COMMAND_MAP)
+        assertThat(report.scope[ControlDeviceAction.COMMAND_MAP]).isEqualTo(
+            mutableMapOf("42" to propertyMap)
+        )
     }
 
     @Test
