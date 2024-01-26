@@ -9,17 +9,17 @@ class RiverEngine : FlowEngine {
         logger.debug { "Executing flow ${flow.name}..." }
         val start = System.currentTimeMillis()
 
-        executeNode(flow.startNode)
+        executeNode(flow.startNode, Scope(mutableMapOf()))
 
         val durationInMs = System.currentTimeMillis() - start
         logger.debug { "Executing flow ${flow.name}... OK, took ${durationInMs}ms" }
     }
 
-    private tailrec fun executeNode(node: FlowNode) {
+    private tailrec fun executeNode(node: FlowNode, scope: Scope) {
         val nextNode = when (node) {
             is ActionFlowNode -> {
                 logger.debug { "Executing action ${node.action::class.simpleName}" }
-                node.action.execute()
+                node.action.execute(scope)
                 node.outgoingNodes.first().node
             }
             is ConditionalFlowNode -> {
@@ -34,7 +34,7 @@ class RiverEngine : FlowEngine {
 
         logger.debug { "Next node: ${nextNode.id}" }
         if (nextNode !is EndFlowNode) {
-            executeNode(nextNode)
+            executeNode(nextNode, scope)
         }
     }
 

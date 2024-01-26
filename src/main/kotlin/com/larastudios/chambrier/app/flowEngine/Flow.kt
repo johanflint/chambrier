@@ -45,15 +45,15 @@ data class ActionFlowNode(
 
 
 interface Action {
-    fun execute()
+    fun execute(scope: Scope)
 }
 
 data object DoNothingAction : Action {
-    override fun execute() {}
+    override fun execute(scope: Scope) {}
 }
 
 data class LogAction(val message: String) : Action {
-    override fun execute() {
+    override fun execute(scope: Scope) {
         logger.info { message }
     }
 
@@ -63,7 +63,7 @@ data class LogAction(val message: String) : Action {
 }
 
 data class ControlDeviceAction(val deviceId: String, val property: Map<String, PropertyValue>): Action {
-    override fun execute() {
+    override fun execute(scope: Scope) {
         TODO("Not yet implemented")
     }
 }

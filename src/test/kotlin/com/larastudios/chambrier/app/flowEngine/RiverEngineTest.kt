@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.*
 import io.mockk.*
 import org.assertj.core.api.Assertions.*
@@ -42,7 +43,7 @@ class RiverEngineTest {
     @Test
     fun `executes an action for an action node`() {
         val action = mockk<Action>()
-        justRun { action.execute() }
+        justRun { action.execute(any()) }
 
         val endNode = EndFlowNode("endNode")
         val logNode = ActionFlowNode("logNode", listOf(FlowLink(endNode)), action)
@@ -51,7 +52,7 @@ class RiverEngineTest {
 
         engine.execute(flow)
 
-        verify { action.execute() }
+        verify { action.execute(Scope()) }
     }
 
     @Test
@@ -80,8 +81,8 @@ class RiverEngineTest {
 
         engine.execute(flow)
 
-        verify { logActionTrueSpy.execute() }
-        verify(exactly = 0) { logActionFalseSpy.execute() }
+        verify { logActionTrueSpy.execute(any()) }
+        verify(exactly = 0) { logActionFalseSpy.execute(Scope()) }
         confirmVerified(logActionFalseSpy)
     }
 }
