@@ -1,5 +1,7 @@
 package com.larastudios.chambrier.app
 
+import com.larastudios.chambrier.app.domain.ControlDeviceCommand
+import com.larastudios.chambrier.app.flowEngine.ControlDeviceAction
 import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.ApplicationListener
@@ -20,7 +22,12 @@ class AppListener(
 
         store.state()
             .doOnNext {
-                flows.forEach(flowEngine::execute)
+                flows.map(flowEngine::execute)
+                    .map {
+                        getCommandMap(it.scope)
+                    }
+                    .fold(mapOf(), ::mergeCommandMaps)
+                    .map { (deviceId, propertyMap) -> ControlDeviceCommand(deviceId, propertyMap) }
             }.subscribe()
 
         val events = Flux.merge(
@@ -39,3 +46,6 @@ class AppListener(
         private val logger = KotlinLogging.logger {}
     }
 }
+
+@Suppress("UNCHECKED_CAST")
+private fun getCommandMap(data: Map<String, Any>): CommandMap = data[ControlDeviceAction.COMMAND_MAP] as? CommandMap ?: mapOf()
