@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
+import java.time.Duration
 
 @SpringBootTest
 class RiverEngineTest {
@@ -88,6 +89,7 @@ class RiverEngineTest {
         assertThat(report.scope[ControlDeviceAction.COMMAND_MAP]).isEqualTo(
             mutableMapOf("42" to propertyMap)
         )
+        assertThat(report.duration).isExactlyInstanceOf(Duration::class.java)
     }
 
     @Test

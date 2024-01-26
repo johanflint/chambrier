@@ -2,6 +2,7 @@ package com.larastudios.chambrier.app.flowEngine
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
+import java.time.Duration
 
 @Service
 class RiverEngine : FlowEngine {
@@ -14,7 +15,7 @@ class RiverEngine : FlowEngine {
 
         val durationInMs = System.currentTimeMillis() - start
         logger.debug { "Executing flow ${flow.name}... OK, took ${durationInMs}ms" }
-        return ExecutedFlowReport(scope.data)
+        return ExecutedFlowReport(scope.data, Duration.ofMillis(durationInMs))
     }
 
     private tailrec fun executeNode(node: FlowNode, scope: Scope) {
