@@ -13,6 +13,7 @@ import reactor.core.scheduler.Schedulers
 @Component
 class AppListener(
     val observers: List<Observer>,
+    val controllers: List<Controller>,
     val store: Store,
     val flowLoader: FlowLoader,
     val flowEngine: FlowEngine
@@ -22,12 +23,16 @@ class AppListener(
 
         store.state()
             .doOnNext {
-                flows.map(flowEngine::execute)
+                val commands = flows.map(flowEngine::execute)
                     .map {
                         getCommandMap(it.scope)
                     }
                     .fold(mapOf(), ::mergeCommandMaps)
                     .map { (deviceId, propertyMap) -> ControlDeviceCommand(deviceId, propertyMap) }
+
+                controllers.forEach {
+                    it.send(commands)
+                }
             }.subscribe()
 
         val events = Flux.merge(
