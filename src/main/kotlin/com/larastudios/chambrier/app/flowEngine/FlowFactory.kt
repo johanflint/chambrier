@@ -90,6 +90,7 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
                 val action = when (this.action) {
                     is SerializedDoNothingAction -> DoNothingAction
                     is SerializedLogAction -> LogAction(this.action.message)
+                    is SerializedControlDeviceAction -> ControlDeviceAction(this.action.deviceId, this.action.property)
                     else -> throw UnknownActionTypeException(this::class.simpleName)
                 }
 
@@ -111,4 +112,6 @@ class UnusedNodesException(override val message: String?) : Exception(message)
 class UnknownNodeTypeException(override val message: String?) : Exception(message)
 class UnknownExpressionTypeException(override val message: String?) : Exception(message)
 class UnknownActionTypeException(override val message: String?) : Exception(message)
+class UnknownPropertyValue(type: String, payload: String) : Exception("Unknown property type '$type' with payload '$payload'")
+class UnknownEnumPropertyValueException(override val message: String?) : Exception(message)
 class FlowLinkNullValueException(override val message: String?) : Exception(message)

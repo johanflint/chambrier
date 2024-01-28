@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.*
 import io.mockk.*
 import org.assertj.core.api.Assertions.*
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
+import java.time.Duration
 
 @SpringBootTest
 class RiverEngineTest {
@@ -42,7 +44,7 @@ class RiverEngineTest {
     @Test
     fun `executes an action for an action node`() {
         val action = mockk<Action>()
-        justRun { action.execute() }
+        justRun { action.execute(any()) }
 
         val endNode = EndFlowNode("endNode")
         val logNode = ActionFlowNode("logNode", listOf(FlowLink(endNode)), action)
@@ -51,7 +53,43 @@ class RiverEngineTest {
 
         engine.execute(flow)
 
-        verify { action.execute() }
+        verify { action.execute(Scope()) }
+    }
+
+
+    @Test
+    fun `executes a control device action`() {
+        val endNode = EndFlowNode("endNode")
+        val propertyMap = mapOf(
+            "fan" to SetBooleanValue(true),
+            "on" to ToggleBooleanValue,
+            "brightness" to SetNumberValue(50),
+            "fanSpeed" to IncrementNumberValue(10),
+            "turnSpeed" to DecrementNumberValue(8),
+            "color" to SetColorValue(CartesianCoordinate(0.1, 0.2), null),
+            "colorWithGamut" to SetColorValue(
+                CartesianCoordinate(0.3, 0.4),
+                Gamut(
+                    red = CartesianCoordinate(0.5, 0.6),
+                    green = CartesianCoordinate(0.7, 0.8),
+                    blue = CartesianCoordinate(0.9, 1.0),
+                ),
+            ),
+            "button" to SetEnumValue(HueButtonState.ShortRelease)
+        )
+        val actionSpy = spyk(ControlDeviceAction("42", propertyMap))
+        val actionNode = ActionFlowNode("controlNode", listOf(FlowLink(endNode)), actionSpy)
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(actionNode)))
+        val flow = Flow("flow", listOf(), startNode)
+
+        val report = engine.execute(flow)
+
+        verify { actionSpy.execute(any<Scope>()) }
+        assertThat(report.scope).containsKey(ControlDeviceAction.COMMAND_MAP)
+        assertThat(report.scope[ControlDeviceAction.COMMAND_MAP]).isEqualTo(
+            mutableMapOf("42" to propertyMap)
+        )
+        assertThat(report.duration).isExactlyInstanceOf(Duration::class.java)
     }
 
     @Test
@@ -80,8 +118,8 @@ class RiverEngineTest {
 
         engine.execute(flow)
 
-        verify { logActionTrueSpy.execute() }
-        verify(exactly = 0) { logActionFalseSpy.execute() }
+        verify { logActionTrueSpy.execute(any()) }
+        verify(exactly = 0) { logActionFalseSpy.execute(Scope()) }
         confirmVerified(logActionFalseSpy)
     }
 }

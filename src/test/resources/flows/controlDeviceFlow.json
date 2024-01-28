@@ -1,0 +1,61 @@
+{
+  "name": "controlDeviceFlow",
+  "nodes": [
+    {
+      "id": "startNode",
+      "type": "startFlowNode",
+      "outgoingNode": "controlNode"
+    },
+    {
+      "id": "controlNode",
+      "type": "actionNode",
+      "outgoingNode": "endNode",
+      "action": {
+        "type": "controlDevice",
+        "deviceId": "42",
+        "property": {
+          "fan": {
+            "type": "boolean",
+            "value": true
+          },
+          "on": {
+            "type": "toggle"
+          },
+          "brightness": {
+            "type": "number",
+            "value": 50
+          },
+          "fanSpeed": {
+            "type": "increment",
+            "value": 10
+          },
+          "turnSpeed": {
+            "type": "decrement",
+            "value": 8
+          },
+          "color": {
+            "type": "color",
+            "xy": { "x": 0.1, "y": 0.2 }
+          },
+          "colorWithGamut": {
+            "type": "color",
+            "xy": { "x": 0.3, "y": 0.4 },
+            "gamut": {
+              "red": { "x": 0.5, "y": 0.6 },
+              "green": { "x": 0.7, "y": 0.8 },
+              "blue": { "x": 0.9, "y": 1.0 }
+            }
+          },
+          "button": {
+            "type": "enum",
+            "value": "HueButtonState.ShortRelease"
+          }
+        }
+      }
+    },
+    {
+      "id": "endNode",
+      "type": "endFlowNode"
+    }
+  ]
+}

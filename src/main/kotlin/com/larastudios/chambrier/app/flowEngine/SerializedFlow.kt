@@ -2,6 +2,7 @@ package com.larastudios.chambrier.app.flowEngine
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.larastudios.chambrier.app.domain.PropertyValue
 import com.larastudios.chambrier.app.flowEngine.expression.Expression
 
 data class SerializedFlow(
@@ -55,6 +56,7 @@ data class SerializedActionFlowNode(
 @JsonSubTypes(
     JsonSubTypes.Type(SerializedDoNothingAction::class, name = "doNothing"),
     JsonSubTypes.Type(SerializedLogAction::class, name = "log"),
+    JsonSubTypes.Type(SerializedControlDeviceAction::class, name = "controlDevice"),
 )
 interface SerializedAction
 
@@ -62,4 +64,9 @@ data object SerializedDoNothingAction : SerializedAction
 
 data class SerializedLogAction(
     val message: String
+) : SerializedAction
+
+data class SerializedControlDeviceAction(
+    val deviceId: String,
+    val property: Map<String, PropertyValue>
 ) : SerializedAction

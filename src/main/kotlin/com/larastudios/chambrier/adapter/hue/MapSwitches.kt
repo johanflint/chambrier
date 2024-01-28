@@ -8,7 +8,7 @@ fun mapSwitches(buttons: List<ButtonGet>, deviceMap: Map<String, DeviceGet>): Li
         val properties = buttons.filter { it.owner.rid == deviceGet.id }
             .map {
                 EnumProperty(
-                    "button${it.metadata.controlId}",
+                    it.id,
                     PropertyType.Button,
                     readonly = true,
                     values = HueButtonState.entries.toList(),
