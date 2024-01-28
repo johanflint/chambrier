@@ -72,6 +72,11 @@ class PropertyChangedReducer : Reducer {
                 return state
             }
 
+            if (property.readonly) {
+                logger.warn { "Unable to modify read-only property '${event.propertyId}' for device '${device.id}' (${device.name}): $event" }
+                return state
+            }
+
             val updatedProperty = map(property)
             return State.devices.index(Index.map(), device.id)
                 .properties.index(Index.map(), property.name)

@@ -18,7 +18,7 @@ class PropertyChangedReducerTest {
         blue = CartesianCoordinate(0.5, 0.6),
     )
     private val colorProperty = ColorProperty("color", PropertyType.Color, readonly = false, xy = CartesianCoordinate(0.01, 0.05), gamut = gamut)
-    private val enumProperty = EnumProperty("button", PropertyType.Button, readonly = true, values = HueButtonState.entries.toList(), value =  HueButtonState.InitialPress)
+    private val enumProperty = EnumProperty("button", PropertyType.Button, readonly = false, values = HueButtonState.entries.toList(), value =  HueButtonState.InitialPress)
 
     private val device: Device = lightDevice.copy(
         properties = mapOf(
@@ -112,6 +112,19 @@ class PropertyChangedReducerTest {
     @Test
     fun `ignores the event by returning the unmodified state for a known device but an unknown property`() {
         val event = NumberPropertyChanged(device.id, "unknown", 1337)
+        val newState = PropertyChangedReducer().reduce(event, initialState)
+
+        assertThat(newState).isEqualTo(initialState)
+    }
+
+    @Test
+    fun `ignores the event by returning the unmodified state for read-only property`() {
+        val device: Device = lightDevice.copy(
+            properties = mapOf(numberProperty.name to numberProperty.copy(readonly = true))
+        )
+        val initialState = State(mapOf(device.id to device))
+
+        val event = NumberPropertyChanged(device.id, numberProperty.name, 1337)
         val newState = PropertyChangedReducer().reduce(event, initialState)
 
         assertThat(newState).isEqualTo(initialState)
