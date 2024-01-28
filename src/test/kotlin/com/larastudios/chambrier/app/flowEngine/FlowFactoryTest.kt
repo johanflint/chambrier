@@ -3,12 +3,14 @@ package com.larastudios.chambrier.app.flowEngine
 import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.*
 import org.assertj.core.api.Assertions.*
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
 
 @SpringBootTest
+@DisplayName("FlowFactory")
 class FlowFactoryTest {
     val unknownNodeTypeFlow = ClassPathResource("flows/invalid/unknownNodeTypeFlow.json").getContentAsString(Charsets.UTF_8)
     val multipleStartNodesFlow = ClassPathResource("flows/invalid/multipleStartNodesFlow.json").getContentAsString(Charsets.UTF_8)
