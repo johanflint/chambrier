@@ -6,23 +6,23 @@ import java.time.Duration
 
 @Service
 class RiverEngine : FlowEngine {
-    override fun execute(flow: Flow): ExecutedFlowReport {
+    override fun execute(flow: Flow, context: Context): ExecutedFlowReport {
         logger.debug { "Executing flow ${flow.name}..." }
         val start = System.currentTimeMillis()
 
         val scope = Scope(mutableMapOf())
-        executeNode(flow.startNode, scope)
+        executeNode(flow.startNode, context, scope)
 
         val durationInMs = System.currentTimeMillis() - start
         logger.debug { "Executing flow ${flow.name}... OK, took ${durationInMs}ms" }
         return ExecutedFlowReport(scope.data, Duration.ofMillis(durationInMs))
     }
 
-    private tailrec fun executeNode(node: FlowNode, scope: Scope) {
+    private tailrec fun executeNode(node: FlowNode, context: Context, scope: Scope) {
         val nextNode = when (node) {
             is ActionFlowNode -> {
                 logger.debug { "Executing action ${node.action::class.simpleName}" }
-                node.action.execute(scope)
+                node.action.execute(context, scope)
                 node.outgoingNodes.first().node
             }
             is ConditionalFlowNode -> {
@@ -37,7 +37,7 @@ class RiverEngine : FlowEngine {
 
         logger.debug { "Next node: ${nextNode.id}" }
         if (nextNode !is EndFlowNode) {
-            executeNode(nextNode, scope)
+            executeNode(nextNode, context, scope)
         }
     }
 

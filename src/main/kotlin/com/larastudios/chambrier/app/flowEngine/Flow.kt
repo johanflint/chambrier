@@ -45,15 +45,15 @@ data class ActionFlowNode(
 
 
 interface Action {
-    fun execute(scope: Scope)
+    fun execute(context: Context, scope: Scope)
 }
 
 data object DoNothingAction : Action {
-    override fun execute(scope: Scope) {}
+    override fun execute(context: Context, scope: Scope) {}
 }
 
 data class LogAction(val message: String) : Action {
-    override fun execute(scope: Scope) {
+    override fun execute(context: Context, scope: Scope) {
         logger.info { message }
     }
 
@@ -63,7 +63,7 @@ data class LogAction(val message: String) : Action {
 }
 
 data class ControlDeviceAction(val deviceId: String, val property: Map<String, PropertyValue>): Action {
-    override fun execute(scope: Scope) {
+    override fun execute(context: Context, scope: Scope) {
         val commandMap: MutableMap<String, Map<String, PropertyValue>> = getCommandMap(scope.data) ?: mutableMapOf()
         commandMap.compute(deviceId) { _, currentValue ->
             currentValue?.plus(property) ?: property

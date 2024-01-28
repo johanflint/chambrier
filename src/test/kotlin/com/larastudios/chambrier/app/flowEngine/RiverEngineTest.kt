@@ -15,6 +15,8 @@ class RiverEngineTest {
     val emptyFlow = ClassPathResource("flows/emptyFlow.json").getContentAsString(Charsets.UTF_8)
     val logFlow = ClassPathResource("flows/logFlow.json").getContentAsString(Charsets.UTF_8)
 
+    val context = FlowContext(state = State(devices = mapOf()))
+
     @Autowired
     lateinit var factory: FlowFactory
 
@@ -27,7 +29,7 @@ class RiverEngineTest {
 
         assertThatNoException()
             .isThrownBy {
-                engine.execute(flow)
+                engine.execute(flow, context)
             }
     }
 
@@ -37,23 +39,23 @@ class RiverEngineTest {
 
         assertThatNoException()
             .isThrownBy {
-                engine.execute(flow)
+                engine.execute(flow, context)
             }
     }
 
     @Test
     fun `executes an action for an action node`() {
         val action = mockk<Action>()
-        justRun { action.execute(any()) }
+        justRun { action.execute(any(), any()) }
 
         val endNode = EndFlowNode("endNode")
         val logNode = ActionFlowNode("logNode", listOf(FlowLink(endNode)), action)
         val startNode = StartFlowNode("startNode", listOf(FlowLink(logNode)))
         val flow = Flow("flow", listOf(), startNode)
 
-        engine.execute(flow)
+        engine.execute(flow, context)
 
-        verify { action.execute(Scope()) }
+        verify { action.execute(context, Scope()) }
     }
 
 
@@ -82,9 +84,9 @@ class RiverEngineTest {
         val startNode = StartFlowNode("startNode", listOf(FlowLink(actionNode)))
         val flow = Flow("flow", listOf(), startNode)
 
-        val report = engine.execute(flow)
+        val report = engine.execute(flow, context)
 
-        verify { actionSpy.execute(any<Scope>()) }
+        verify { actionSpy.execute(context, any<Scope>()) }
         assertThat(report.scope).containsKey(ControlDeviceAction.COMMAND_MAP)
         assertThat(report.scope[ControlDeviceAction.COMMAND_MAP]).isEqualTo(
             mutableMapOf("42" to propertyMap)
@@ -116,10 +118,10 @@ class RiverEngineTest {
         val startNode = StartFlowNode("startNode", listOf(FlowLink(conditionalNode)))
         val flow = Flow("flow", listOf(), startNode)
 
-        engine.execute(flow)
+        engine.execute(flow, context)
 
-        verify { logActionTrueSpy.execute(any()) }
-        verify(exactly = 0) { logActionFalseSpy.execute(Scope()) }
+        verify { logActionTrueSpy.execute(context, Scope()) }
+        verify(exactly = 0) { logActionFalseSpy.execute(context, Scope()) }
         confirmVerified(logActionFalseSpy)
     }
 }

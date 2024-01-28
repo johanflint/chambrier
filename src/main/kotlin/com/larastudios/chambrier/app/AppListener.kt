@@ -1,6 +1,7 @@
 package com.larastudios.chambrier.app
 
 import com.larastudios.chambrier.app.domain.ControlDeviceCommand
+import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.flowEngine.ControlDeviceAction
 import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -22,8 +23,8 @@ class AppListener(
         val flows = flowLoader.load()
 
         store.state()
-            .doOnNext {
-                val commands = flows.map(flowEngine::execute)
+            .doOnNext { state ->
+                val commands = flows.map { flowEngine.execute(it, FlowContext(state)) }
                     .map {
                         getCommandMap(it.scope)
                     }
