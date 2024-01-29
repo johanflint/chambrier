@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.domain.PropertyValue
 import com.larastudios.chambrier.app.flowEngine.expression.Expression
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -62,11 +63,28 @@ data class LogAction(val message: String) : Action {
     }
 }
 
-data class ControlDeviceAction(val deviceId: String, val property: Map<String, PropertyValue>): Action {
+data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String, PropertyValue>): Action {
     override fun execute(context: Context, scope: Scope) {
+        val state = (context as FlowContext).state
+        val device = state.devices[deviceId]
+        if (device == null) {
+            logger.warn { "Unable to control unknown device '$deviceId', ignoring control device action: $propertyMap" }
+            return
+        }
+        val filteredPropertyMap = propertyMap.filterKeys {
+            val existingProperty = device.properties.containsKey(it)
+            if (!existingProperty) {
+                logger.warn { "Unable to set value of unknown property '$it' for device '${device.id}' (${device.name})" }
+            }
+            existingProperty
+        }
+        if (filteredPropertyMap.isEmpty()) {
+            return
+        }
+
         val commandMap: MutableMap<String, Map<String, PropertyValue>> = getCommandMap(scope.data) ?: mutableMapOf()
         commandMap.compute(deviceId) { _, currentValue ->
-            currentValue?.plus(property) ?: property
+            currentValue?.plus(filteredPropertyMap) ?: filteredPropertyMap
         }
 
         scope.data[COMMAND_MAP] = commandMap
@@ -76,6 +94,7 @@ data class ControlDeviceAction(val deviceId: String, val property: Map<String, P
     private fun getCommandMap(data: MutableMap<String, Any>): MutableMap<String, Map<String, PropertyValue>>? = data[COMMAND_MAP] as? MutableMap<String, Map<String, PropertyValue>>
 
     companion object {
+        private val logger = KotlinLogging.logger {}
         const val COMMAND_MAP = "_commandMap"
     }
 }
