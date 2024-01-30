@@ -29,7 +29,10 @@ class AppListener(
                         getCommandMap(it.scope)
                     }
                     .fold(mapOf(), ::mergeCommandMaps)
-                    .map { (deviceId, propertyMap) -> ControlDeviceCommand(deviceId, propertyMap) }
+                    .map { (deviceId, propertyMap) ->
+                        val device = state.devices[deviceId] ?: throw IllegalArgumentException("State contains no device with id '$deviceId'")
+                        ControlDeviceCommand(device, propertyMap)
+                    }
 
                 controllers.forEach {
                     it.send(commands)
