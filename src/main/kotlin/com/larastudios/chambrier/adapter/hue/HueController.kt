@@ -41,8 +41,16 @@ class HueController(val client: HueClient) : Controller {
                 }
             }
 
-            if (onProperty != null && (on != null || brightness != null)) {
-                client.controlLight(onProperty.externalId!!, LightRequest(on = on, dimming = brightness))
+            val colorProperty = device.properties.values.firstOrNull { it.type == PropertyType.Color } as? ColorProperty
+            val color = colorProperty?.let {
+                val propertyValue = command.propertyMap[it.name] as? SetColorValue
+                propertyValue?.let {
+                    SetColor(xy = it.xy)
+                }
+            }?.apply { logger.info { "Change property '${colorProperty.name}' of device '${device.name}' to '$xy' from '${colorProperty.xy}'..." } }
+
+            if (onProperty != null && (on != null || brightness != null || color != null)) {
+                client.controlLight(onProperty.externalId!!, LightRequest(on = on, dimming = brightness, color = color))
                     .log()
                     .subscribe()
             }
