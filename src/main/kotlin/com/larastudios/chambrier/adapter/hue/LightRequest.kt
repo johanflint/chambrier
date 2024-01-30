@@ -12,7 +12,7 @@ data class LightRequest(
 )
 
 data class SetDimming(
-    val brightness: Int, // >= 0 && <= 100
+    val brightness: Number, // >= 0 && <= 100
 )
 
 data class SetColorTemperature(

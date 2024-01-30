@@ -25,8 +25,26 @@ class HueController(val client: HueClient) : Controller {
                 }?.apply { logger.info { "Change property '${onProperty.name}' of device '${device.name}' to '$on' from '${onProperty.value}'..." } }
             }
 
-            if (on != null) {
-                client.controlLight(onProperty.externalId!!, LightRequest(on = on))
+            val brightnessProperty = device.properties.values.firstOrNull { it.type == PropertyType.Brightness } as? NumberProperty
+            val brightness = brightnessProperty?.let {
+                val currentValue = brightnessProperty.value?.toDouble() ?: 0.0
+                when (val propertyValue = command.propertyMap[it.name]) {
+                    is SetNumberValue -> propertyValue.value
+                    is IncrementNumberValue -> currentValue + propertyValue.value.toDouble()
+                    is DecrementNumberValue -> currentValue - propertyValue.value.toDouble()
+                    else -> null
+                }?.let {
+                    val minimumValue = brightnessProperty.minimum?.toDouble() ?: Double.MIN_VALUE
+                    val maximumValue = brightnessProperty.maximum?.toDouble() ?: Double.MAX_VALUE
+                    val value = it.toDouble().coerceIn(minimumValue, maximumValue)
+
+                    logger.info { "Change property '${brightnessProperty.name}' of device '${device.name}' to '$value' from '$currentValue'..." }
+                    SetDimming(brightness = value)
+                }
+            }
+
+            if (onProperty != null && (on != null || brightness != null)) {
+                client.controlLight(onProperty.externalId!!, LightRequest(on = on, dimming = brightness))
                     .log()
                     .subscribe()
             }
