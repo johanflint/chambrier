@@ -34,9 +34,7 @@ class HueController(val client: HueClient) : Controller {
                     is DecrementNumberValue -> currentValue - propertyValue.value
                     else -> null
                 }?.let {
-                    val minimumValue = brightnessProperty.minimum?.toDouble() ?: Double.MIN_VALUE
-                    val maximumValue = brightnessProperty.maximum?.toDouble() ?: Double.MAX_VALUE
-                    val value = it.toDouble().coerceIn(minimumValue, maximumValue)
+                    val value = it.coerceInNullable(brightnessProperty.minimum, brightnessProperty.maximum)
 
                     logger.info { "Change property '${brightnessProperty.name}' of device '${device.name}' to '$value' from '$currentValue'..." }
                     SetDimming(brightness = value)

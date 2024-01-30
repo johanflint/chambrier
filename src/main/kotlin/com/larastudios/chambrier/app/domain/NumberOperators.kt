@@ -56,5 +56,13 @@ operator fun Number.minus(other: Number): Number = when (this) {
     else -> throws()
 }
 
+// Must have a different name than coerceIn to prevent recursive calls
+fun Number.coerceInNullable(minimumValue: Number?, maximumValue: Number?): Number = when (this) {
+    is Int -> this.coerceIn(minimumValue?.toInt(), maximumValue?.toInt())
+    is Long -> this.coerceIn(minimumValue?.toLong(), maximumValue?.toLong())
+    is Double -> this.coerceIn(minimumValue?.toDouble(), maximumValue?.toDouble())
+    else -> throws()
+}
+
 @Suppress("NOTHING_TO_INLINE")
 private inline fun throws(): Nothing = throw UnsupportedOperationException("Unsupported number type")

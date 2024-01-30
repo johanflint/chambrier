@@ -27,17 +27,28 @@ class NumberOperatorsTest {
         assertThat(actual::class).isEqualTo(type)
     }
 
+    @ParameterizedTest(name = "{0}.coerceInNullable({1}, {2}) = {3}")
+    @MethodSource("coerceNumbersProvider")
+    fun coerceInNullable(value: Number, minimum: Number, maximum: Number, expected: Number) {
+        val actual = value.coerceInNullable(minimum, maximum)
+
+        assertThat(actual).isEqualTo(expected)
+    }
+
     companion object {
         @JvmStatic
         fun plusNumbersProvider(): List<Arguments> = listOf(
+            // Int
             Arguments.of(2, 3, 5, Int::class),
             Arguments.of(2, 3L, 5L, Long::class),
             Arguments.of(2, 3.1, 5.1, Double::class),
 
+            // Long
             Arguments.of(2L, 3, 5L, Long::class),
             Arguments.of(2L, 3L, 5L, Long::class),
             Arguments.of(2L, 3.1, 5.1, Double::class),
 
+            // Double
             Arguments.of(2.0, 3, 5.0, Double::class),
             Arguments.of(2.0, 3L, 5.0, Double::class),
             Arguments.of(2.0, 3.1, 5.1, Double::class),
@@ -45,17 +56,38 @@ class NumberOperatorsTest {
 
         @JvmStatic
         fun minusNumbersProvider(): List<Arguments> = listOf(
+            /// Int
             Arguments.of(4, 3, 1, Int::class),
             Arguments.of(4, 3L, 1L, Long::class),
             Arguments.of(4, 3.0, 1.0, Double::class),
 
+            // Long
             Arguments.of(4L, 3, 1L, Long::class),
             Arguments.of(4L, 3L, 1L, Long::class),
             Arguments.of(4L, 3.0, 1.0, Double::class),
 
+            // Double
             Arguments.of(4.0, 3, 1.0, Double::class),
             Arguments.of(4.0, 3L, 1.0, Double::class),
             Arguments.of(4.0, 3.0, 1.0, Double::class),
+        )
+
+        @JvmStatic
+        fun coerceNumbersProvider(): List<Arguments> = listOf(
+            // Int
+            Arguments.of(42, 0, 100, 42),
+            Arguments.of(42, 50, 100, 50),
+            Arguments.of(42, 0, 41, 41),
+
+            // Long
+            Arguments.of(42L, 0L, 100L, 42L),
+            Arguments.of(42L, 50L, 100L, 50L),
+            Arguments.of(42L, 0L, 41L, 41L),
+
+            // Double
+            Arguments.of(42.0, 0.0, 100.0, 42.0),
+            Arguments.of(42.0, 50.0, 100.0, 50.0),
+            Arguments.of(42.0, 0.0, 41.0, 41.0),
         )
     }
 }
