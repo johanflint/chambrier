@@ -24,7 +24,6 @@ data class DecrementNumberValue(
 
 data class SetColorValue(
     val xy: CartesianCoordinate,
-    val gamut: Gamut?,
 ) : AbsolutePropertyValue
 
 data class SetEnumValue<T: Enum<T>>(

@@ -30,7 +30,7 @@ class PropertyValuesTest {
             Arguments.of(SetNumberValue(42).toNamed(), numberProperty.toNamed(), true),
             Arguments.of(IncrementNumberValue(5).toNamed(), numberProperty.toNamed(), true),
             Arguments.of(DecrementNumberValue(3).toNamed(), numberProperty.toNamed(), true),
-            Arguments.of(SetColorValue(CartesianCoordinate(1.0, 1.0), null).toNamed(), colorProperty.toNamed(), true),
+            Arguments.of(SetColorValue(CartesianCoordinate(1.0, 1.0)).toNamed(), colorProperty.toNamed(), true),
             Arguments.of(SetEnumValue(HueButtonState.LongPress), enumProperty.toNamed(), true),
         )
 

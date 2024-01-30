@@ -69,15 +69,7 @@ class RiverEngineTest {
             "brightness" to SetNumberValue(50),
             "fanSpeed" to IncrementNumberValue(10),
             "turnSpeed" to DecrementNumberValue(8),
-            "color" to SetColorValue(CartesianCoordinate(0.1, 0.2), null),
-            "colorWithGamut" to SetColorValue(
-                CartesianCoordinate(0.3, 0.4),
-                Gamut(
-                    red = CartesianCoordinate(0.5, 0.6),
-                    green = CartesianCoordinate(0.7, 0.8),
-                    blue = CartesianCoordinate(0.9, 1.0),
-                ),
-            ),
+            "color" to SetColorValue(CartesianCoordinate(0.1, 0.2)),
             "button" to SetEnumValue(HueButtonState.ShortRelease)
         )
         val actionSpy = spyk(ControlDeviceAction("42", propertyMap))
@@ -92,7 +84,6 @@ class RiverEngineTest {
             "fanSpeed" to numberProperty,
             "turnSpeed" to numberProperty,
             "color" to colorProperty,
-            "colorWithGamut" to colorProperty,
             "button" to enumProperty
         )))))
         val report = engine.execute(flow, context)
