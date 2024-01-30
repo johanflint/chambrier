@@ -27,11 +27,11 @@ class HueController(val client: HueClient) : Controller {
 
             val brightnessProperty = device.properties.values.firstOrNull { it.type == PropertyType.Brightness } as? NumberProperty
             val brightness = brightnessProperty?.let {
-                val currentValue = brightnessProperty.value?.toDouble() ?: 0.0
+                val currentValue = brightnessProperty.value ?: 0
                 when (val propertyValue = command.propertyMap[it.name]) {
                     is SetNumberValue -> propertyValue.value
-                    is IncrementNumberValue -> currentValue + propertyValue.value.toDouble()
-                    is DecrementNumberValue -> currentValue - propertyValue.value.toDouble()
+                    is IncrementNumberValue -> currentValue + propertyValue.value
+                    is DecrementNumberValue -> currentValue - propertyValue.value
                     else -> null
                 }?.let {
                     val minimumValue = brightnessProperty.minimum?.toDouble() ?: Double.MIN_VALUE
