@@ -1,7 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
-import com.larastudios.chambrier.app.domain.FlowContext
-import com.larastudios.chambrier.app.domain.PropertyValue
+import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.Expression
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -63,7 +62,7 @@ data class LogAction(val message: String) : Action {
     }
 }
 
-data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String, PropertyValue>): Action {
+data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String, PropertyValue>) : Action {
     override fun execute(context: Context, scope: Scope) {
         val state = (context as FlowContext).state
         val device = state.devices[deviceId]
@@ -71,13 +70,7 @@ data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String
             logger.warn { "Unable to control unknown device '$deviceId', ignoring control device action: $propertyMap" }
             return
         }
-        val filteredPropertyMap = propertyMap.filterKeys {
-            val existingProperty = device.properties.containsKey(it)
-            if (!existingProperty) {
-                logger.warn { "Unable to set value of unknown property '$it' for device '${device.id}' (${device.name})" }
-            }
-            existingProperty
-        }
+        val filteredPropertyMap = filterInvalidProperties(propertyMap, device)
         if (filteredPropertyMap.isEmpty()) {
             return
         }
@@ -89,6 +82,21 @@ data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String
 
         scope.data[COMMAND_MAP] = commandMap
     }
+
+    private fun filterInvalidProperties(propertyMap: Map<String, PropertyValue>, device: Device): Map<String, PropertyValue> =
+        propertyMap.filter { (propertyId, propertyValue) ->
+            val property = device.properties[propertyId]
+            if (property == null) {
+                logger.warn { "Unable to set value of unknown property '$propertyId' for device '${device.id}' (${device.name})" }
+                false
+            } else {
+                val isAssignable = propertyValue.isAssignableTo(property)
+                if (!isAssignable) {
+                    logger.warn { "Incompatible property types: property '$propertyId' of device '${device.id}' (${device.name}) is of type '${property::class.simpleName}', but the value is of type '${propertyValue::class.simpleName}'" }
+                }
+                isAssignable
+            }
+        }
 
     @Suppress("UNCHECKED_CAST")
     private fun getCommandMap(data: MutableMap<String, Any>): MutableMap<String, Map<String, PropertyValue>>? = data[COMMAND_MAP] as? MutableMap<String, Map<String, PropertyValue>>

@@ -1,8 +1,8 @@
 package com.larastudios.chambrier.app.flowEngine
 
+import com.larastudios.chambrier.*
 import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.*
-import com.larastudios.chambrier.lightDevice
 import io.mockk.*
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -85,16 +85,15 @@ class RiverEngineTest {
         val startNode = StartFlowNode("startNode", listOf(FlowLink(actionNode)))
         val flow = Flow("flow", listOf(), startNode)
 
-        val property = BooleanProperty("fan", PropertyType.Button, readonly = false, true)
         val context = FlowContext(state = State(devices = mapOf("42" to lightDevice.copy(properties = mapOf(
-            "fan" to property,
-            "on" to property,
-            "brightness" to property,
-            "fanSpeed" to property,
-            "turnSpeed" to property,
-            "color" to property,
-            "colorWithGamut" to property,
-            "button" to property
+            "fan" to booleanProperty,
+            "on" to booleanProperty,
+            "brightness" to numberProperty,
+            "fanSpeed" to numberProperty,
+            "turnSpeed" to numberProperty,
+            "color" to colorProperty,
+            "colorWithGamut" to colorProperty,
+            "button" to enumProperty
         )))))
         val report = engine.execute(flow, context)
 
