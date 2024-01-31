@@ -1,12 +1,10 @@
 package com.larastudios.chambrier.app.flowEngine
 
-import com.larastudios.chambrier.app.domain.FlowContext
-import com.larastudios.chambrier.app.domain.IncrementNumberValue
-import com.larastudios.chambrier.app.domain.SetBooleanValue
-import com.larastudios.chambrier.app.domain.State
+import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.initialState
 import com.larastudios.chambrier.lightDevice
 import com.larastudios.chambrier.lightDevice2
+import com.larastudios.chambrier.switchDevice
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -33,6 +31,16 @@ class ControlDeviceActionTest {
         val scope = Scope()
 
         val action = ControlDeviceAction(lightDevice.id, mapOf("unknownProperty" to SetBooleanValue(true)))
+        action.execute(context, scope)
+
+        assertThat(scope.data).isEmpty()
+    }
+
+    @Test
+    fun `ignores valid properties that are read-only`() {
+        val scope = Scope()
+
+        val action = ControlDeviceAction(switchDevice.id, mapOf("button1" to SetEnumValue(HueButtonState.ShortRelease)))
         action.execute(context, scope)
 
         assertThat(scope.data).isEmpty()

@@ -89,6 +89,9 @@ data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String
             if (property == null) {
                 logger.warn { "Unable to set value of unknown property '$propertyId' for device '${device.id}' (${device.name})" }
                 false
+            } else if (property.readonly) {
+                logger.warn { "Unable to modify read-only property '$propertyId' for device '${device.id}' (${device.name})" }
+                false
             } else {
                 val isAssignable = propertyValue.isAssignableTo(property)
                 if (!isAssignable) {

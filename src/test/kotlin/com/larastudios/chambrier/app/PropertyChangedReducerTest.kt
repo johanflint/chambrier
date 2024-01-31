@@ -97,19 +97,6 @@ class PropertyChangedReducerTest {
     }
 
     @Test
-    fun `ignores the event by returning the unmodified state for read-only property`() {
-        val device: Device = lightDevice.copy(
-            properties = mapOf(numberProperty.name to numberProperty.copy(readonly = true))
-        )
-        val initialState = State(mapOf(device.id to device))
-
-        val event = NumberPropertyChanged(device.id, numberProperty.name, 1337)
-        val newState = PropertyChangedReducer().reduce(event, initialState)
-
-        assertThat(newState).isEqualTo(initialState)
-    }
-
-    @Test
     fun `ignores other events by returning the unmodified state`() {
         val event = mockk<Event>()
         val newState = PropertyChangedReducer().reduce(event, initialState)

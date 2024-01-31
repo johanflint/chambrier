@@ -44,7 +44,7 @@ val editableSwitchDevice = Device(
 )
 
 val switchDevice = Device(
-    "5f679dab-db82-42a7-9e2c-de8040373689",
+    "0a65707c-bf48-42e9-8eb5-9f9e5114cfa0",
     DeviceType.Switch,
     "Signify Netherlands B.V.",
     "RWL021",
