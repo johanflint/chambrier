@@ -17,7 +17,7 @@ data class SetDimming(
 )
 
 data class SetColorTemperature(
-    val mirek: Int, // >= 153 && <= 500
+    val mirek: Number, // >= 153 && <= 500
 )
 
 data class SetColor(val xy: CartesianCoordinate)

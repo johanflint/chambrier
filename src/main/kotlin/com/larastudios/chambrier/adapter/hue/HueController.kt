@@ -45,12 +45,23 @@ class HueController(val client: HueClient) : Controller {
             val color = colorProperty?.let {
                 val propertyValue = command.propertyMap[it.name] as? SetColorValue
                 propertyValue?.let {
+                    logger.info { "Change property '${colorProperty.name}' of device '${device.name}' to '${it.xy}' from '${colorProperty.xy}'..." }
                     SetColor(xy = it.xy)
                 }
-            }?.apply { logger.info { "Change property '${colorProperty.name}' of device '${device.name}' to '$xy' from '${colorProperty.xy}'..." } }
+            }
 
-            if (onProperty != null && (on != null || brightness != null || color != null)) {
-                client.controlLight(onProperty.externalId!!, LightRequest(on = on, dimming = brightness, color = color))
+            val colorTemperatureProperty = device.properties.values.firstOrNull { it.type == PropertyType.ColorTemperature } as? NumberProperty
+            val colorTemperature = colorTemperatureProperty?.let {
+                val propertyValue = command.propertyMap[it.name] as? SetNumberValue
+                propertyValue?.let {
+                    val kelvin = it.value.coerceInNullable(colorTemperatureProperty.minimum, colorTemperatureProperty.maximum)
+                    logger.info { "Change property '${colorTemperatureProperty.name}' of device '${device.name}' to '$kelvin' from '${colorTemperatureProperty.value}'..." }
+                    SetColorTemperature(kelvinToMirek(kelvin))
+                }
+            }
+
+            if (onProperty != null && (on != null || brightness != null || colorTemperature != null || color != null)) {
+                client.controlLight(onProperty.externalId!!, LightRequest(on = on, dimming = brightness, colorTemperature = colorTemperature, color = color))
                     .log()
                     .subscribe()
             }

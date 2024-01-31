@@ -56,6 +56,34 @@ operator fun Number.minus(other: Number): Number = when (this) {
     else -> throws()
 }
 
+operator fun Number.div(other: Number): Number = when (this) {
+    is Int -> {
+        when (other) {
+            is Int -> this / other
+            is Long -> this / other
+            is Double -> this / other
+            else -> throws()
+        }
+    }
+    is Long -> {
+        when (other) {
+            is Int -> this / other
+            is Long -> this / other
+            is Double -> this / other
+            else -> throws()
+        }
+    }
+    is Double -> {
+        when (other) {
+            is Int -> this / other
+            is Long -> this / other
+            is Double -> this / other
+            else -> throws()
+        }
+    }
+    else -> throws()
+}
+
 // Must have a different name than coerceIn to prevent recursive calls
 fun Number.coerceInNullable(minimumValue: Number?, maximumValue: Number?): Number = when (this) {
     is Int -> this.coerceIn(minimumValue?.toInt(), maximumValue?.toInt())

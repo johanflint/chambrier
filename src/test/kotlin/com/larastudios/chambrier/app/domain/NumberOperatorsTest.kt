@@ -27,6 +27,15 @@ class NumberOperatorsTest {
         assertThat(actual::class).isEqualTo(type)
     }
 
+    @ParameterizedTest(name = "{0} / {1} = {2} (type: {3})")
+    @MethodSource("divNumbersProvider")
+    fun `div operator`(one: Number, two: Number, expected: Number, type: KClass<Any>) {
+        val actual = one / two
+
+        assertThat(actual).isEqualTo(expected)
+        assertThat(actual::class).isEqualTo(type)
+    }
+
     @ParameterizedTest(name = "{0}.coerceInNullable({1}, {2}) = {3}")
     @MethodSource("coerceNumbersProvider")
     fun coerceInNullable(value: Number, minimum: Number, maximum: Number, expected: Number) {
@@ -70,6 +79,24 @@ class NumberOperatorsTest {
             Arguments.of(4.0, 3, 1.0, Double::class),
             Arguments.of(4.0, 3L, 1.0, Double::class),
             Arguments.of(4.0, 3.0, 1.0, Double::class),
+        )
+
+        @JvmStatic
+        fun divNumbersProvider(): List<Arguments> = listOf(
+            /// Int
+            Arguments.of(9, 3, 3, Int::class),
+            Arguments.of(9, 3L, 3L, Long::class),
+            Arguments.of(9, 3.0, 3.0, Double::class),
+
+            // Long
+            Arguments.of(9L, 3, 3L, Long::class),
+            Arguments.of(9L, 3L, 3L, Long::class),
+            Arguments.of(9L, 3.0, 3.0, Double::class),
+
+            // Double
+            Arguments.of(9.0, 3, 3.0, Double::class),
+            Arguments.of(9.0, 3L, 3.0, Double::class),
+            Arguments.of(9.0, 3.0, 3.0, Double::class),
         )
 
         @JvmStatic

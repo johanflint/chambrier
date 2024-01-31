@@ -15,4 +15,13 @@ class KelvinConversionsTest {
     fun `returns the value in Kelvin`(mirek: Int, kelvin: Int) {
         Assertions.assertThat(mirekToKelvin(mirek)).isEqualTo(kelvin)
     }
+
+    @ParameterizedTest(name = "{0} kelvin = {1} mirek")
+    @CsvSource(
+        "6535, 153",
+        "2000, 500"
+    )
+    fun `returns the value in mirek`(kelvin: Int, mirek: Int) {
+        Assertions.assertThat(kelvinToMirek(kelvin)).isEqualTo(mirek)
+    }
 }
