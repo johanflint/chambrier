@@ -1,6 +1,6 @@
 package com.larastudios.chambrier.app.domain
 
-interface PropertyValue
+sealed interface PropertyValue
 interface AbsolutePropertyValue : PropertyValue
 interface RelativePropertyValue : PropertyValue
 
@@ -24,9 +24,15 @@ data class DecrementNumberValue(
 
 data class SetColorValue(
     val xy: CartesianCoordinate,
-    val gamut: Gamut?,
 ) : AbsolutePropertyValue
 
 data class SetEnumValue<T: Enum<T>>(
     val value: T,
 ) : AbsolutePropertyValue
+
+fun PropertyValue.isAssignableTo(property: Property): Boolean = when (property) {
+    is BooleanProperty -> this is SetBooleanValue || this is ToggleBooleanValue
+    is NumberProperty -> this is SetNumberValue || this is IncrementNumberValue || this is DecrementNumberValue
+    is ColorProperty -> this is SetColorValue
+    is EnumProperty<*> -> this is SetEnumValue<*>
+}

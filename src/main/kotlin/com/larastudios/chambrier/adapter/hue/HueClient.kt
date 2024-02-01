@@ -5,10 +5,13 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.support.WebClientAdapter
 import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.HttpExchange
+import org.springframework.web.service.annotation.PutExchange
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -26,6 +29,8 @@ class HueClient(private val webClient: WebClient) {
     fun retrieveLights(): Mono<HueResponse<LightGet>> = service.lights()
 
     fun retrieveButtons(): Mono<HueResponse<ButtonGet>> = service.buttons()
+
+    fun controlLight(lightId: String, @RequestBody requestBody: LightRequest): Mono<String> = service.light(lightId, requestBody)
 
     fun sse(): Flux<ServerSentEvent<List<SseData>>> {
         val type = object : ParameterizedTypeReference<ServerSentEvent<List<SseData>>>() {}
@@ -46,6 +51,9 @@ class HueClient(private val webClient: WebClient) {
 
         @GetExchange("/light")
         fun lights(): Mono<HueResponse<LightGet>>
+
+        @PutExchange("/light/{lightId}")
+        fun light(@PathVariable lightId: String, @RequestBody requestBody: LightRequest): Mono<String>
 
         @GetExchange("/button")
         fun buttons(): Mono<HueResponse<ButtonGet>>

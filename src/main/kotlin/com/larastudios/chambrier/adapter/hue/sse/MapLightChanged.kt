@@ -1,5 +1,6 @@
 package com.larastudios.chambrier.adapter.hue.sse
 
+import com.larastudios.chambrier.adapter.hue.mirekToKelvin
 import com.larastudios.chambrier.app.domain.*
 
 fun mapChangedLightProperty(property: ChangedLightProperty): Sequence<Event> = sequence {
@@ -24,6 +25,6 @@ fun mapChangedLightProperty(property: ChangedLightProperty): Sequence<Event> = s
     }
 
     if (property.colorTemperature != null) {
-        yield(NumberPropertyChanged(property.owner.rid, "colorTemperature", property.colorTemperature.mirek))
+        yield(NumberPropertyChanged(property.owner.rid, "colorTemperature", mirekToKelvin(property.colorTemperature.mirek)))
     }
 }

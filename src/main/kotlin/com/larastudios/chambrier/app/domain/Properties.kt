@@ -2,7 +2,7 @@ package com.larastudios.chambrier.app.domain
 
 import arrow.optics.optics
 
-interface Property {
+sealed interface Property {
     val name: String
     val type: PropertyType
     val readonly: Boolean

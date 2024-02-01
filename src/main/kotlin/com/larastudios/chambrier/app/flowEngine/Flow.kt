@@ -1,8 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
-import com.larastudios.chambrier.app.domain.PropertyValue
 import com.larastudios.chambrier.app.flowEngine.expression.Expression
-import io.github.oshai.kotlinlogging.KotlinLogging
 
 data class Flow(
     val name: String,
@@ -42,40 +40,3 @@ data class ActionFlowNode(
     override val outgoingNodes: List<FlowLink>,
     val action: Action
 ) : FlowNode
-
-
-interface Action {
-    fun execute(scope: Scope)
-}
-
-data object DoNothingAction : Action {
-    override fun execute(scope: Scope) {}
-}
-
-data class LogAction(val message: String) : Action {
-    override fun execute(scope: Scope) {
-        logger.info { message }
-    }
-
-    companion object {
-        private val logger = KotlinLogging.logger {}
-    }
-}
-
-data class ControlDeviceAction(val deviceId: String, val property: Map<String, PropertyValue>): Action {
-    override fun execute(scope: Scope) {
-        val commandMap: MutableMap<String, Map<String, PropertyValue>> = getCommandMap(scope.data) ?: mutableMapOf()
-        commandMap.compute(deviceId) { _, currentValue ->
-            currentValue?.plus(property) ?: property
-        }
-
-        scope.data[COMMAND_MAP] = commandMap
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun getCommandMap(data: MutableMap<String, Any>): MutableMap<String, Map<String, PropertyValue>>? = data[COMMAND_MAP] as? MutableMap<String, Map<String, PropertyValue>>
-
-    companion object {
-        const val COMMAND_MAP = "_commandMap"
-    }
-}
