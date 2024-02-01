@@ -5,6 +5,7 @@ import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.flowEngine.ControlDeviceAction
 import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
@@ -20,6 +21,12 @@ class AppListener(
     val flowEngine: FlowEngine
 ) : ApplicationListener<ContextRefreshedEvent> {
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
+        runBlocking {
+            contextRefreshed()
+        }
+    }
+
+    suspend fun contextRefreshed() {
         val flows = flowLoader.load()
 
         store.state()
