@@ -28,7 +28,9 @@ class AppListener(
         val flows = flowLoader.load()
 
         launch(CoroutineName("storeListener")) {
-            store.state().asFlow()
+            store.state()
+                .log()
+                .asFlow()
                 .collect { state ->
                     val commands = flows.map { flowEngine.execute(it, FlowContext(state)) }
                         .map {
@@ -54,8 +56,6 @@ class AppListener(
 
         store.subscribe(events)
         logger.info { "Store subscribed to event stream" }
-
-        store.state().log().subscribe()
     }
 
     companion object {
