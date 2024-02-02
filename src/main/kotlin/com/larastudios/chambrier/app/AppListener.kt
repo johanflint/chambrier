@@ -5,9 +5,9 @@ import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.flowEngine.ControlDeviceAction
 import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationListener
+import kotlinx.coroutines.coroutineScope
 import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
@@ -19,14 +19,9 @@ class AppListener(
     val store: Store,
     val flowLoader: FlowLoader,
     val flowEngine: FlowEngine
-) : ApplicationListener<ContextRefreshedEvent> {
-    override fun onApplicationEvent(event: ContextRefreshedEvent) {
-        runBlocking {
-            contextRefreshed()
-        }
-    }
-
-    suspend fun contextRefreshed() {
+) {
+    @EventListener
+    suspend fun handleContextRefreshEvent(event: ContextRefreshedEvent): Unit = coroutineScope {
         val flows = flowLoader.load()
 
         store.state()
