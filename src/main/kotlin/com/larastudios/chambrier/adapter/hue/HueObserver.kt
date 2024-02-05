@@ -6,9 +6,10 @@ import com.larastudios.chambrier.app.Observer
 import com.larastudios.chambrier.app.domain.DiscoveredDevices
 import com.larastudios.chambrier.app.domain.Event
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -17,7 +18,7 @@ import reactor.kotlin.core.util.function.component3
 @Service
 @ConditionalOnProperty("hue.enabled")
 class HueObserver(val client: HueClient) : Observer {
-    override fun observe(): Flux<Event> {
+    override suspend fun observe(): Flow<Event> {
         logger.info { "Retrieve Hue devices..." }
         val devices = client.retrieveDevices()
             .flatMap { it.extractData("devices") }
@@ -63,6 +64,7 @@ class HueObserver(val client: HueClient) : Observer {
             }
             .map<Event> { DiscoveredDevices(it) }
             .concatWith(eventStream)
+            .asFlow()
     }
 
     private fun <T> HueResponse<T>.extractData(type: String): Mono<List<T>> =

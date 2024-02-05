@@ -5,15 +5,15 @@ import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.flowEngine.ControlDeviceAction
 import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
-import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextClosedEvent
+import kotlinx.coroutines.reactor.asFlux
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Flux
-import reactor.core.scheduler.Schedulers
 
 @Component
 class AppListener(
@@ -48,13 +48,12 @@ class AppListener(
                 }
         }
 
-        val events = Flux.merge(
-            observers.map {
-                logger.info { "Starting ${it::class.simpleName}" }
-                it.observe().publishOn(Schedulers.parallel())
-            })
+        val eventFlow = observers.map {
+            logger.info { "Starting ${it::class.simpleName}" }
+            it.observe()
+        }.merge()
+        store.subscribe(eventFlow.asFlux())
 
-        store.subscribe(events)
         logger.info { "Store subscribed to event stream" }
     }
 
