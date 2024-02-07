@@ -9,8 +9,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactor.asFlux
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -29,9 +27,8 @@ class AppListener(
 
         launch(CoroutineName("storeListener")) {
             store.state()
-                .log()
-                .asFlow()
                 .collect { state ->
+                    logger.info { "[storeListener] $state" }
                     val commands = flows.map { flowEngine.execute(it, FlowContext(state)) }
                         .map {
                             getCommandMap(it.scope)
@@ -52,7 +49,7 @@ class AppListener(
             logger.info { "Starting ${it::class.simpleName}" }
             it.observe()
         }.merge()
-        store.subscribe(eventFlow.asFlux())
+        store.subscribe(eventFlow)
 
         logger.info { "Store subscribed to event stream" }
     }
