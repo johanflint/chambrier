@@ -10,6 +10,15 @@ spring:
   codec:
     max-in-memory-size: 1MB
 
+resilience4j.ratelimiter:
+  instances:
+    hue:
+      limitForPeriod: 1
+      limitRefreshPeriod: 100ms
+      timeoutDuration: 200ms
+      registerHealthIndicator: true
+      eventConsumerBufferSize: 100
+
 flows:
   directory: /etc/chambrier/flows
 

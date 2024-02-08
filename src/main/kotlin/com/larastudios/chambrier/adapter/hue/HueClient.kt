@@ -1,6 +1,9 @@
 package com.larastudios.chambrier.adapter.hue
 
 import com.larastudios.chambrier.adapter.hue.sse.SseData
+import io.github.resilience4j.kotlin.ratelimiter.executeSuspendFunction
+import io.github.resilience4j.ratelimiter.RateLimiter
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
@@ -18,8 +21,14 @@ import reactor.core.publisher.Mono
 import reactor.util.retry.Retry
 import java.time.Duration
 
+/**
+ * Client to communicate with a Hue bridge.
+ *
+ * To ensure not to flood the bridge with requests, a rate limiter is used.
+ * https://developers.meethue.com/develop/application-design-guidance/hue-system-performance/
+ */
 @Service
-class HueClient(private val webClient: WebClient) {
+class HueClient(private val webClient: WebClient, private val rateLimiter: RateLimiter) {
     private val service = HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient))
         .build()
         .createClient(Api::class.java)
@@ -30,7 +39,9 @@ class HueClient(private val webClient: WebClient) {
 
     fun retrieveButtons(): Mono<HueResponse<ButtonGet>> = service.buttons()
 
-    fun controlLight(lightId: String, @RequestBody requestBody: LightRequest): Mono<String> = service.light(lightId, requestBody)
+    suspend fun controlLight(lightId: String, @RequestBody requestBody: LightRequest): String = rateLimiter.executeSuspendFunction {
+        service.light(lightId, requestBody).awaitSingle()
+    }
 
     fun sse(): Flux<ServerSentEvent<List<SseData>>> {
         val type = object : ParameterizedTypeReference<ServerSentEvent<List<SseData>>>() {}
