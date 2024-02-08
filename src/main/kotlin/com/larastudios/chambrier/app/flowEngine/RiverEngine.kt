@@ -6,7 +6,7 @@ import java.time.Duration
 
 @Service
 class RiverEngine : FlowEngine {
-    override fun execute(flow: Flow, context: Context): ExecutedFlowReport {
+    override suspend fun execute(flow: Flow, context: Context): ExecutedFlowReport {
         logger.debug { "Executing flow ${flow.name}..." }
         val start = System.currentTimeMillis()
 
@@ -18,7 +18,7 @@ class RiverEngine : FlowEngine {
         return ExecutedFlowReport(scope.data, Duration.ofMillis(durationInMs))
     }
 
-    private tailrec fun executeNode(node: FlowNode, context: Context, scope: Scope) {
+    private tailrec suspend fun executeNode(node: FlowNode, context: Context, scope: Scope) {
         val nextNode = when (node) {
             is ActionFlowNode -> {
                 logger.debug { "Executing action ${node.action::class.simpleName}" }
