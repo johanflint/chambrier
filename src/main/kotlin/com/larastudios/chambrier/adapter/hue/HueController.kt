@@ -4,34 +4,14 @@ import com.larastudios.chambrier.app.Controller
 import com.larastudios.chambrier.app.domain.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import reactor.core.publisher.Sinks
-import reactor.util.retry.Retry
-import java.time.Duration
 
 @Service
 class HueController(val client: HueClient) : Controller {
-    private val sink = Sinks.many().replay().limit<Mono<*>>(Duration.ofSeconds(5))
-
-    init {
-        // Ensure not to flood the bridge with requests
-        // https://developers.meethue.com/develop/application-design-guidance/hue-system-performance/
-        sink.asFlux()
-            .flatMap { it }
-            .log()
-            .delayElements(Duration.ofMillis(100))
-            .retryWhen(Retry.backoff(Long.MAX_VALUE, Duration.ofMillis(100)))
-            .doOnError {
-                logger.error(it) { "Fatal exception received, stopping sending requests to Hue" }
-            }
-            .subscribe()
+    override suspend fun send(commands: List<DeviceCommand>) {
+        commands.filterIsInstance<ControlDeviceCommand>().forEach { send(it) }
     }
 
-    override fun send(commands: List<DeviceCommand>) {
-        commands.filterIsInstance<ControlDeviceCommand>().forEach(::send)
-    }
-
-    private fun send(command: ControlDeviceCommand) {
+    private suspend fun send(command: ControlDeviceCommand) {
         logger.info { "Sending command $command" }
         val device = command.device
 
@@ -81,8 +61,8 @@ class HueController(val client: HueClient) : Controller {
             }
 
             if (onProperty != null && (on != null || brightness != null || colorTemperature != null || color != null)) {
-                val controlLightMono = client.controlLight(onProperty.externalId!!, LightRequest(on = on, dimming = brightness, colorTemperature = colorTemperature, color = color))
-                sink.tryEmitNext(controlLightMono)
+                val response = client.controlLight(onProperty.externalId!!, LightRequest(on = on, dimming = brightness, colorTemperature = colorTemperature, color = color))
+                logger.debug { "Control light response: $response" }
             }
         }
     }

@@ -7,15 +7,15 @@ import com.larastudios.chambrier.app.domain.isAssignableTo
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 interface Action {
-    fun execute(context: Context, scope: Scope)
+    suspend fun execute(context: Context, scope: Scope)
 }
 
 data object DoNothingAction : Action {
-    override fun execute(context: Context, scope: Scope) {}
+    override suspend fun execute(context: Context, scope: Scope) {}
 }
 
 data class LogAction(val message: String) : Action {
-    override fun execute(context: Context, scope: Scope) {
+    override suspend fun execute(context: Context, scope: Scope) {
         logger.info { message }
     }
 
@@ -25,7 +25,7 @@ data class LogAction(val message: String) : Action {
 }
 
 data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String, PropertyValue>) : Action {
-    override fun execute(context: Context, scope: Scope) {
+    override suspend fun execute(context: Context, scope: Scope) {
         val state = (context as FlowContext).state
         val device = state.devices[deviceId]
         if (device == null) {

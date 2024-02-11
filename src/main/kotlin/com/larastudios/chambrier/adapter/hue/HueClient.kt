@@ -1,6 +1,12 @@
 package com.larastudios.chambrier.adapter.hue
 
 import com.larastudios.chambrier.adapter.hue.sse.SseData
+import io.github.resilience4j.kotlin.ratelimiter.executeSuspendFunction
+import io.github.resilience4j.ratelimiter.RateLimiter
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
@@ -18,19 +24,33 @@ import reactor.core.publisher.Mono
 import reactor.util.retry.Retry
 import java.time.Duration
 
+/**
+ * Client to communicate with a Hue bridge.
+ *
+ * To ensure not to flood the bridge with requests, a rate limiter is used.
+ * https://developers.meethue.com/develop/application-design-guidance/hue-system-performance/
+ */
 @Service
-class HueClient(private val webClient: WebClient) {
+class HueClient(private val webClient: WebClient, private val rateLimiter: RateLimiter) {
     private val service = HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient))
         .build()
         .createClient(Api::class.java)
 
-    fun retrieveDevices(): Mono<HueResponse<DeviceGet>> = service.devices()
+    suspend fun retrieveDevices(): Deferred<HueResponse<DeviceGet>> = rateLimitedAsync {
+        service.devices().awaitSingle()
+    }
 
-    fun retrieveLights(): Mono<HueResponse<LightGet>> = service.lights()
+    suspend fun retrieveLights(): Deferred<HueResponse<LightGet>> = rateLimitedAsync {
+        service.lights().awaitSingle()
+    }
 
-    fun retrieveButtons(): Mono<HueResponse<ButtonGet>> = service.buttons()
+    suspend fun retrieveButtons(): Deferred<HueResponse<ButtonGet>> = rateLimitedAsync {
+        service.buttons().awaitSingle()
+    }
 
-    fun controlLight(lightId: String, @RequestBody requestBody: LightRequest): Mono<String> = service.light(lightId, requestBody)
+    suspend fun controlLight(lightId: String, @RequestBody requestBody: LightRequest): String = rateLimiter.executeSuspendFunction {
+        service.light(lightId, requestBody).awaitSingle()
+    }
 
     fun sse(): Flux<ServerSentEvent<List<SseData>>> {
         val type = object : ParameterizedTypeReference<ServerSentEvent<List<SseData>>>() {}
@@ -42,6 +62,12 @@ class HueClient(private val webClient: WebClient) {
             .bodyToFlux(type)
             .timeout(Duration.ofMinutes(5))
             .retryWhen(Retry.backoff(Long.MAX_VALUE, Duration.ofMillis(500)).maxBackoff(Duration.ofMinutes(1)))
+    }
+
+    private suspend fun <T> rateLimitedAsync(block: suspend () -> T): Deferred<T> = coroutineScope {
+        rateLimiter.executeSuspendFunction {
+            async { block() }
+        }
     }
 
     @HttpExchange("/clip/v2/resource")

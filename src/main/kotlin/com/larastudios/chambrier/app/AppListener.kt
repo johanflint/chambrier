@@ -5,11 +5,13 @@ import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.flowEngine.ControlDeviceAction
 import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.context.ApplicationListener
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Flux
-import reactor.core.scheduler.Schedulers
 
 @Component
 class AppListener(
@@ -18,37 +20,38 @@ class AppListener(
     val store: Store,
     val flowLoader: FlowLoader,
     val flowEngine: FlowEngine
-) : ApplicationListener<ContextRefreshedEvent> {
-    override fun onApplicationEvent(event: ContextRefreshedEvent) {
+) {
+    @EventListener
+    suspend fun handleContextRefreshEvent(event: ContextRefreshedEvent): Unit = coroutineScope {
         val flows = flowLoader.load()
 
-        store.state()
-            .doOnNext { state ->
-                val commands = flows.map { flowEngine.execute(it, FlowContext(state)) }
-                    .map {
-                        getCommandMap(it.scope)
-                    }
-                    .fold(mapOf(), ::mergeCommandMaps)
-                    .map { (deviceId, propertyMap) ->
-                        val device = state.devices[deviceId] ?: throw IllegalArgumentException("State contains no device with id '$deviceId'")
-                        ControlDeviceCommand(device, propertyMap)
-                    }
+        launch(CoroutineName("storeListener")) {
+            store.state()
+                .collect { state ->
+                    logger.info { "[storeListener] $state" }
+                    val commands = flows.map { flowEngine.execute(it, FlowContext(state)) }
+                        .map {
+                            getCommandMap(it.scope)
+                        }
+                        .fold(mapOf(), ::mergeCommandMaps)
+                        .map { (deviceId, propertyMap) ->
+                            val device = state.devices[deviceId] ?: throw IllegalArgumentException("State contains no device with id '$deviceId'")
+                            ControlDeviceCommand(device, propertyMap)
+                        }
 
-                controllers.forEach {
-                    it.send(commands)
+                    controllers.forEach {
+                        it.send(commands)
+                    }
                 }
-            }.subscribe()
+        }
 
-        val events = Flux.merge(
-            observers.map {
-                logger.info { "Starting ${it::class.simpleName}" }
-                it.observe().publishOn(Schedulers.parallel())
-            })
+        val eventFlow = observers.map {
+            logger.info { "Starting ${it::class.simpleName}" }
+            it.observe()
+        }.merge()
+        store.subscribe(eventFlow)
 
-        store.subscribe(events)
         logger.info { "Store subscribed to event stream" }
-
-        store.state().log().subscribe()
     }
 
     companion object {

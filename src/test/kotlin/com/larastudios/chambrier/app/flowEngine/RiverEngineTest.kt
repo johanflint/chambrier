@@ -4,6 +4,8 @@ import com.larastudios.chambrier.*
 import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.*
 import io.mockk.*
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +32,9 @@ class RiverEngineTest {
 
         assertThatNoException()
             .isThrownBy {
-                engine.execute(flow, context)
+                runBlocking {
+                    engine.execute(flow, context)
+                }
             }
     }
 
@@ -40,14 +44,16 @@ class RiverEngineTest {
 
         assertThatNoException()
             .isThrownBy {
-                engine.execute(flow, context)
+                runBlocking {
+                    engine.execute(flow, context)
+                }
             }
     }
 
     @Test
-    fun `executes an action for an action node`() {
+    fun `executes an action for an action node`() = runTest {
         val action = mockk<Action>()
-        justRun { action.execute(any(), any()) }
+        coJustRun { action.execute(any(), any()) }
 
         val endNode = EndFlowNode("endNode")
         val logNode = ActionFlowNode("logNode", listOf(FlowLink(endNode)), action)
@@ -56,12 +62,12 @@ class RiverEngineTest {
 
         engine.execute(flow, context)
 
-        verify { action.execute(context, Scope()) }
+        coVerify { action.execute(context, Scope()) }
     }
 
 
     @Test
-    fun `executes a control device action`() {
+    fun `executes a control device action`() = runTest {
         val endNode = EndFlowNode("endNode")
         val propertyMap = mapOf(
             "fan" to SetBooleanValue(true),
@@ -88,7 +94,7 @@ class RiverEngineTest {
         )))))
         val report = engine.execute(flow, context)
 
-        verify { actionSpy.execute(context, any<Scope>()) }
+        coVerify { actionSpy.execute(context, any<Scope>()) }
         assertThat(report.scope).containsKey(ControlDeviceAction.COMMAND_MAP)
         assertThat(report.scope[ControlDeviceAction.COMMAND_MAP]).isEqualTo(
             mutableMapOf("42" to propertyMap)
@@ -97,7 +103,7 @@ class RiverEngineTest {
     }
 
     @Test
-    fun `executes a flow with a conditional node`() {
+    fun `executes a flow with a conditional node`() = runTest {
         val endNode = EndFlowNode("endNode")
 
         val logActionTrueSpy = spyk(LogAction("true"))
@@ -122,8 +128,8 @@ class RiverEngineTest {
 
         engine.execute(flow, context)
 
-        verify { logActionTrueSpy.execute(context, Scope()) }
-        verify(exactly = 0) { logActionFalseSpy.execute(context, Scope()) }
+        coVerify { logActionTrueSpy.execute(context, Scope()) }
+        coVerify(exactly = 0) { logActionFalseSpy.execute(context, Scope()) }
         confirmVerified(logActionFalseSpy)
     }
 }

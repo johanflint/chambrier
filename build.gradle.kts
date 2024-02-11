@@ -26,6 +26,16 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.0-RC2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0-RC2")
+
+    // Resilience4j
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.2.0")
+    implementation("io.github.resilience4j:resilience4j-ratelimiter:2.2.0")
+    implementation("io.github.resilience4j:resilience4j-kotlin:2.2.0")
+
     // Arrow
     implementation("io.arrow-kt:arrow-core:1.2.0")
     implementation("io.arrow-kt:arrow-optics:1.2.0")
