@@ -24,7 +24,7 @@ fun mapChangedLightProperty(property: ChangedLightProperty): Sequence<Event> = s
         yield(ColorPropertyChanged(property.owner.rid, "color", xy, gamut))
     }
 
-    if (property.colorTemperature != null) {
+    if (property.colorTemperature != null && property.colorTemperature.mirekValid) {
         yield(NumberPropertyChanged(property.owner.rid, "colorTemperature", mirekToKelvin(property.colorTemperature.mirek)))
     }
 }
