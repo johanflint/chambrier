@@ -2,12 +2,14 @@ package com.larastudios.chambrier.app.flowEngine
 
 import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.*
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
+import java.time.Duration
 
 @SpringBootTest
 @DisplayName("FlowFactory")
@@ -21,6 +23,7 @@ class FlowFactoryTest {
 
     val emptyFlow = ClassPathResource("flows/emptyFlow.json").getContentAsString(Charsets.UTF_8)
     val logFlow = ClassPathResource("flows/logFlow.json").getContentAsString(Charsets.UTF_8)
+    val waitFlow = ClassPathResource("flows/waitFlow.json").getContentAsString(Charsets.UTF_8)
     val conditionalFlow = ClassPathResource("flows/conditionalFlow.json").getContentAsString(Charsets.UTF_8)
     val nestedConditionalFlow = ClassPathResource("flows/nestedConditionalFlow.json").getContentAsString(Charsets.UTF_8)
     val controlDeviceFlow = ClassPathResource("flows/controlDeviceFlow.json").getContentAsString(Charsets.UTF_8)
@@ -120,6 +123,24 @@ class FlowFactoryTest {
             .contains(logNode)
             .contains(endNode)
             .hasSize(3)
+        assertThat(flow.startNode).isEqualTo(startNode)
+    }
+
+    @Test
+    fun `creates a flow with an action node of type wait`() {
+        val flow = factory.fromJson(waitFlow)
+
+        val endNode = EndFlowNode("endNode")
+        val logNode = ActionFlowNode("logNode", listOf(FlowLink(endNode)), LogAction("Done waiting"))
+        val waitNode = ActionFlowNode("waitNode", listOf(FlowLink(logNode)), WaitAction(Duration.ofMinutes(5).plusSeconds(30)))
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(waitNode)))
+
+        assertThat(flow.name).isEqualTo("waitFlow")
+        assertThat(flow.nodes)
+            .contains(startNode)
+            .contains(logNode)
+            .contains(endNode)
+            .hasSize(4)
         assertThat(flow.startNode).isEqualTo(startNode)
     }
 

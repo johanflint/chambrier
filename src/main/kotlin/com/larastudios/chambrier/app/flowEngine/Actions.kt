@@ -5,6 +5,8 @@ import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.domain.PropertyValue
 import com.larastudios.chambrier.app.domain.isAssignableTo
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.time.delay
+import java.time.Duration
 
 interface Action {
     suspend fun execute(context: Context, scope: Scope)
@@ -21,6 +23,12 @@ data class LogAction(val message: String) : Action {
 
     companion object {
         private val logger = KotlinLogging.logger {}
+    }
+}
+
+data class WaitAction(val duration: Duration) : Action {
+    override suspend fun execute(context: Context, scope: Scope) {
+        delay(duration)
     }
 }
 

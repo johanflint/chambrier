@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.larastudios.chambrier.app.domain.PropertyValue
 import com.larastudios.chambrier.app.flowEngine.expression.Expression
+import java.time.Duration
 
 data class SerializedFlow(
     val name: String,
@@ -56,6 +57,7 @@ data class SerializedActionFlowNode(
 @JsonSubTypes(
     JsonSubTypes.Type(SerializedDoNothingAction::class, name = "doNothing"),
     JsonSubTypes.Type(SerializedLogAction::class, name = "log"),
+    JsonSubTypes.Type(SerializedWaitAction::class, name = "wait"),
     JsonSubTypes.Type(SerializedControlDeviceAction::class, name = "controlDevice"),
 )
 interface SerializedAction
@@ -64,6 +66,10 @@ data object SerializedDoNothingAction : SerializedAction
 
 data class SerializedLogAction(
     val message: String
+) : SerializedAction
+
+data class SerializedWaitAction(
+    val duration: Duration
 ) : SerializedAction
 
 data class SerializedControlDeviceAction(

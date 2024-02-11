@@ -65,6 +65,20 @@ class RiverEngineTest {
         coVerify { action.execute(context, Scope()) }
     }
 
+    @Test
+    fun `executes a wait action`() = runTest {
+        val endNode = EndFlowNode("endNode")
+        val actionSpy = spyk(WaitAction(Duration.ofSeconds(1)))
+        val logNode = ActionFlowNode("logNode", listOf(FlowLink(endNode)), LogAction("Done waiting"))
+        val waitNode = ActionFlowNode("waitNode", listOf(FlowLink(logNode)), actionSpy)
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(waitNode)))
+        val flow = Flow("flow", listOf(), startNode)
+
+        engine.execute(flow, context)
+
+        coVerify { actionSpy.execute(context, any<Scope>()) }
+    }
+
 
     @Test
     fun `executes a control device action`() = runTest {
