@@ -59,6 +59,7 @@ data class SerializedActionFlowNode(
     JsonSubTypes.Type(SerializedLogAction::class, name = "log"),
     JsonSubTypes.Type(SerializedWaitAction::class, name = "wait"),
     JsonSubTypes.Type(SerializedControlDeviceAction::class, name = "controlDevice"),
+    JsonSubTypes.Type(SerializedSendDeviceCommandsAction::class, name = "sendCommands"),
 )
 interface SerializedAction
 
@@ -76,3 +77,5 @@ data class SerializedControlDeviceAction(
     val deviceId: String,
     val property: Map<String, PropertyValue>
 ) : SerializedAction
+
+data object SerializedSendDeviceCommandsAction : SerializedAction

@@ -1,9 +1,6 @@
 package com.larastudios.chambrier.app.flowEngine
 
-import com.larastudios.chambrier.app.domain.Device
-import com.larastudios.chambrier.app.domain.FlowContext
-import com.larastudios.chambrier.app.domain.PropertyValue
-import com.larastudios.chambrier.app.domain.isAssignableTo
+import com.larastudios.chambrier.app.domain.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.time.delay
 import java.time.Duration
@@ -78,4 +75,27 @@ data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String
         private val logger = KotlinLogging.logger {}
         const val COMMAND_MAP = "_commandMap"
     }
+}
+
+data object SendDeviceCommandsAction : Action {
+    override suspend fun execute(context: Context, scope: Scope) {
+        val commandMap: MutableMap<String, Map<String, PropertyValue>> = getCommandMap(scope.data) ?: return
+        val flowContext = context as FlowContext
+        val state = flowContext.state
+
+        val commands = commandMap.map { (deviceId, propertyMap) ->
+            val device = state.devices[deviceId] ?: throw IllegalArgumentException("State contains no device with id '$deviceId'")
+            ControlDeviceCommand(device, propertyMap)
+        }
+
+        logger.info { "Commands: $commands" }
+
+        context.commandChannel.send(commands)
+        scope.data.remove(ControlDeviceAction.COMMAND_MAP)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun getCommandMap(data: MutableMap<String, Any>): MutableMap<String, Map<String, PropertyValue>>? = data[ControlDeviceAction.COMMAND_MAP] as? MutableMap<String, Map<String, PropertyValue>>
+
+    private val logger = KotlinLogging.logger {}
 }

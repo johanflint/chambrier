@@ -24,6 +24,7 @@ class FlowFactoryTest {
     val emptyFlow = ClassPathResource("flows/emptyFlow.json").getContentAsString(Charsets.UTF_8)
     val logFlow = ClassPathResource("flows/logFlow.json").getContentAsString(Charsets.UTF_8)
     val waitFlow = ClassPathResource("flows/waitFlow.json").getContentAsString(Charsets.UTF_8)
+    val sendCommandsFlow = ClassPathResource("flows/sendCommandsFlow.json").getContentAsString(Charsets.UTF_8)
     val conditionalFlow = ClassPathResource("flows/conditionalFlow.json").getContentAsString(Charsets.UTF_8)
     val nestedConditionalFlow = ClassPathResource("flows/nestedConditionalFlow.json").getContentAsString(Charsets.UTF_8)
     val controlDeviceFlow = ClassPathResource("flows/controlDeviceFlow.json").getContentAsString(Charsets.UTF_8)
@@ -166,6 +167,25 @@ class FlowFactoryTest {
             .usingRecursiveComparison()
             .ignoringCollectionOrder()
             .isEqualTo(listOf(startNode, actionNode, endNode))
+        assertThat(flow.startNode).isEqualTo(startNode)
+    }
+
+    @Test
+    fun `creates a flow with an action node of type send commands`() {
+        val flow = factory.fromJson(sendCommandsFlow)
+
+        val endNode = EndFlowNode("endNode")
+        val sendCommandsNode = ActionFlowNode("sendCommandsNode", listOf(FlowLink(endNode)), SendDeviceCommandsAction)
+
+        val propertyMap = mapOf("on" to SetBooleanValue(true))
+        val controlDeviceNode = ActionFlowNode("controlNode", listOf(FlowLink(sendCommandsNode)), ControlDeviceAction("84a3be14-5d90-4165-ac64-818b7981bb32", propertyMap))
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(controlDeviceNode)))
+
+        assertThat(flow.name).isEqualTo("sendCommandsFlow")
+        assertThat(flow.nodes)
+            .usingRecursiveComparison()
+            .ignoringCollectionOrder()
+            .isEqualTo(listOf(startNode, controlDeviceNode, sendCommandsNode, endNode))
         assertThat(flow.startNode).isEqualTo(startNode)
     }
 

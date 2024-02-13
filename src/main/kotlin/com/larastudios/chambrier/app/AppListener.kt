@@ -1,11 +1,14 @@
 package com.larastudios.chambrier.app
 
 import com.larastudios.chambrier.app.domain.ControlDeviceCommand
+import com.larastudios.chambrier.app.domain.DeviceCommand
 import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.flowEngine.ControlDeviceAction
 import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
@@ -24,12 +27,22 @@ class AppListener(
     @EventListener
     suspend fun handleContextRefreshEvent(event: ContextRefreshedEvent): Unit = coroutineScope {
         val flows = flowLoader.load()
+        val commandChannel = Channel<List<DeviceCommand>>()
+
+        launch(CoroutineName("commandChannel")) {
+            commandChannel.consumeEach { commands ->
+                logger.debug { "[commandChannel] Received ${commands.joinToString(", ")}" }
+                controllers.forEach {
+                    it.send(commands)
+                }
+            }
+        }
 
         launch(CoroutineName("storeListener")) {
             store.state()
                 .collect { state ->
                     logger.info { "[storeListener] $state" }
-                    val commands = flows.map { flowEngine.execute(it, FlowContext(state)) }
+                    flows.map { flowEngine.execute(it, FlowContext(state, commandChannel)) }
                         .map {
                             getCommandMap(it.scope)
                         }
@@ -39,9 +52,9 @@ class AppListener(
                             ControlDeviceCommand(device, propertyMap)
                         }
 
-                    controllers.forEach {
-                        it.send(commands)
-                    }
+                        if (commands.isNotEmpty()) {
+                            commandChannel.send(commands)
+                        }
                 }
         }
 
