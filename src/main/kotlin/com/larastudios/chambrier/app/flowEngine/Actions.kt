@@ -42,7 +42,7 @@ data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String
             return
         }
 
-        val commandMap: MutableMap<String, Map<String, PropertyValue>> = getCommandMap(scope.data) ?: mutableMapOf()
+        val commandMap: MutableMap<String, Map<String, PropertyValue>> = scope.commandMap() ?: mutableMapOf()
         commandMap.compute(deviceId) { _, currentValue ->
             currentValue?.plus(filteredPropertyMap) ?: filteredPropertyMap
         }
@@ -68,9 +68,6 @@ data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String
             }
         }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun getCommandMap(data: MutableMap<String, Any>): MutableMap<String, Map<String, PropertyValue>>? = data[COMMAND_MAP] as? MutableMap<String, Map<String, PropertyValue>>
-
     companion object {
         private val logger = KotlinLogging.logger {}
         const val COMMAND_MAP = "_commandMap"
@@ -79,7 +76,7 @@ data class ControlDeviceAction(val deviceId: String, val propertyMap: Map<String
 
 data object SendDeviceCommandsAction : Action {
     override suspend fun execute(context: Context, scope: Scope) {
-        val commandMap: MutableMap<String, Map<String, PropertyValue>> = getCommandMap(scope.data) ?: return
+        val commandMap: MutableMap<String, Map<String, PropertyValue>> = scope.commandMap() ?: return
         val flowContext = context as FlowContext
         val state = flowContext.state
 
@@ -94,8 +91,8 @@ data object SendDeviceCommandsAction : Action {
         scope.data.remove(ControlDeviceAction.COMMAND_MAP)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun getCommandMap(data: MutableMap<String, Any>): MutableMap<String, Map<String, PropertyValue>>? = data[ControlDeviceAction.COMMAND_MAP] as? MutableMap<String, Map<String, PropertyValue>>
-
     private val logger = KotlinLogging.logger {}
 }
+
+@Suppress("UNCHECKED_CAST")
+private fun Scope.commandMap(): MutableMap<String, Map<String, PropertyValue>>? = data[ControlDeviceAction.COMMAND_MAP] as? MutableMap<String, Map<String, PropertyValue>>
