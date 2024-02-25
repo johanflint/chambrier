@@ -22,7 +22,7 @@ class HueController(val client: HueClient) : Controller {
                     is SetBooleanValue -> On(propertyValue.value)
                     is ToggleBooleanValue -> On(!it.value)
                     else -> null
-                }?.apply { logger.info { "Change property '${onProperty.name}' of device '${device.name}' to '$on' from '${onProperty.value}'..." } }
+                }?.apply { logger.debug { "Change property '${onProperty.name}' of device '${device.name}' to '$on' from '${onProperty.value}'..." } }
             }
 
             val brightnessProperty = device.properties.values.firstOrNull { it.type == PropertyType.Brightness } as? NumberProperty
@@ -36,7 +36,7 @@ class HueController(val client: HueClient) : Controller {
                 }?.let {
                     val value = it.coerceInNullable(brightnessProperty.minimum, brightnessProperty.maximum)
 
-                    logger.info { "Change property '${brightnessProperty.name}' of device '${device.name}' to '$value' from '$currentValue'..." }
+                    logger.debug { "Change property '${brightnessProperty.name}' of device '${device.name}' to '$value' from '$currentValue'..." }
                     SetDimming(brightness = value)
                 }
             }
@@ -45,7 +45,7 @@ class HueController(val client: HueClient) : Controller {
             val color = colorProperty?.let {
                 val propertyValue = command.propertyMap[it.name] as? SetColorValue
                 propertyValue?.let {
-                    logger.info { "Change property '${colorProperty.name}' of device '${device.name}' to '${it.xy}' from '${colorProperty.xy}'..." }
+                    logger.debug { "Change property '${colorProperty.name}' of device '${device.name}' to '${it.xy}' from '${colorProperty.xy}'..." }
                     SetColor(xy = it.xy)
                 }
             }
@@ -55,7 +55,7 @@ class HueController(val client: HueClient) : Controller {
                 val propertyValue = command.propertyMap[it.name] as? SetNumberValue
                 propertyValue?.let {
                     val kelvin = it.value.coerceInNullable(colorTemperatureProperty.minimum, colorTemperatureProperty.maximum)
-                    logger.info { "Change property '${colorTemperatureProperty.name}' of device '${device.name}' to '$kelvin' from '${colorTemperatureProperty.value}'..." }
+                    logger.debug { "Change property '${colorTemperatureProperty.name}' of device '${device.name}' to '$kelvin' from '${colorTemperatureProperty.value}'..." }
                     SetColorTemperature(kelvinToMirek(kelvin))
                 }
             }

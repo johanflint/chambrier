@@ -1,0 +1,37 @@
+{
+  "name": "sendCommandsFlow",
+  "nodes": [
+    {
+      "id": "startNode",
+      "type": "startFlowNode",
+      "outgoingNode": "controlNode"
+    },
+    {
+      "id": "controlNode",
+      "type": "actionNode",
+      "outgoingNode": "sendCommandsNode",
+      "action": {
+        "type": "controlDevice",
+        "deviceId": "84a3be14-5d90-4165-ac64-818b7981bb32",
+        "property": {
+          "on": {
+            "type": "boolean",
+            "value": true
+          }
+        }
+      }
+    },
+    {
+      "id": "sendCommandsNode",
+      "type": "actionNode",
+      "action": {
+        "type": "sendCommands"
+      },
+      "outgoingNode": "endNode"
+    },
+    {
+      "id": "endNode",
+      "type": "endFlowNode"
+    }
+  ]
+}

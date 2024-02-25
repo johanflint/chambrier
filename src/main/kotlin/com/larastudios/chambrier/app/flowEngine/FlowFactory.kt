@@ -90,8 +90,10 @@ class FlowFactory(private val objectMapper: ObjectMapper) {
                 val action = when (this.action) {
                     is SerializedDoNothingAction -> DoNothingAction
                     is SerializedLogAction -> LogAction(this.action.message)
+                    is SerializedWaitAction -> WaitAction(this.action.duration)
                     is SerializedControlDeviceAction -> ControlDeviceAction(this.action.deviceId, this.action.property)
-                    else -> throw UnknownActionTypeException(this::class.simpleName)
+                    is SerializedSendDeviceCommandsAction -> SendDeviceCommandsAction
+                    else -> throw UnknownActionTypeException(action::class.simpleName)
                 }
 
                 ActionFlowNode(id, outgoingNodes, action)

@@ -1,0 +1,32 @@
+{
+  "name": "waitFlow",
+  "nodes": [
+    {
+      "id": "startNode",
+      "type": "startFlowNode",
+      "outgoingNode": "waitNode"
+    },
+    {
+      "id": "waitNode",
+      "type": "actionNode",
+      "outgoingNode": "logNode",
+      "action": {
+        "type": "wait",
+        "duration": "PT5M30S"
+      }
+    },
+    {
+      "id": "logNode",
+      "type": "actionNode",
+      "outgoingNode": "endNode",
+      "action": {
+        "type": "log",
+        "message": "Done waiting"
+      }
+    },
+    {
+      "id": "endNode",
+      "type": "endFlowNode"
+    }
+  ]
+}

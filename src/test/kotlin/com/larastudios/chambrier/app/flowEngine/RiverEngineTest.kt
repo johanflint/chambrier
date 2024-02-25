@@ -4,6 +4,7 @@ import com.larastudios.chambrier.*
 import com.larastudios.chambrier.app.domain.*
 import com.larastudios.chambrier.app.flowEngine.expression.*
 import io.mockk.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.*
@@ -18,7 +19,7 @@ class RiverEngineTest {
     val emptyFlow = ClassPathResource("flows/emptyFlow.json").getContentAsString(Charsets.UTF_8)
     val logFlow = ClassPathResource("flows/logFlow.json").getContentAsString(Charsets.UTF_8)
 
-    val context = FlowContext(state = State(devices = mapOf()))
+    val context = FlowContext(state = State(devices = mapOf()), commandChannel = Channel())
 
     @Autowired
     lateinit var factory: FlowFactory
@@ -65,6 +66,20 @@ class RiverEngineTest {
         coVerify { action.execute(context, Scope()) }
     }
 
+    @Test
+    fun `executes a wait action`() = runTest {
+        val endNode = EndFlowNode("endNode")
+        val actionSpy = spyk(WaitAction(Duration.ofSeconds(1)))
+        val logNode = ActionFlowNode("logNode", listOf(FlowLink(endNode)), LogAction("Done waiting"))
+        val waitNode = ActionFlowNode("waitNode", listOf(FlowLink(logNode)), actionSpy)
+        val startNode = StartFlowNode("startNode", listOf(FlowLink(waitNode)))
+        val flow = Flow("flow", listOf(), startNode)
+
+        engine.execute(flow, context)
+
+        coVerify { actionSpy.execute(context, any<Scope>()) }
+    }
+
 
     @Test
     fun `executes a control device action`() = runTest {
@@ -91,7 +106,7 @@ class RiverEngineTest {
             "turnSpeed" to numberProperty,
             "color" to colorProperty,
             "button" to enumProperty
-        )))))
+        )))), commandChannel = Channel())
         val report = engine.execute(flow, context)
 
         coVerify { actionSpy.execute(context, any<Scope>()) }

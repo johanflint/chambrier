@@ -5,6 +5,7 @@ import com.larastudios.chambrier.initialState
 import com.larastudios.chambrier.lightDevice
 import com.larastudios.chambrier.lightDevice2
 import com.larastudios.chambrier.switchDevice
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -16,13 +17,13 @@ class ControlDeviceActionTest {
     private val propertyTwo = mapOf("brightness" to IncrementNumberValue(1))
     private val propertyThree = mapOf("on" to SetBooleanValue(false))
     private val action = ControlDeviceAction(lightDevice.id, property)
-    private val context = FlowContext(state = initialState)
+    private val context = FlowContext(state = initialState, commandChannel = Channel())
 
     @Test
     fun `does not modify the scope if the device is unknown `() = runTest {
         val scope = Scope()
 
-        action.execute(FlowContext(State(mapOf())), scope)
+        action.execute(FlowContext(State(mapOf()), Channel()), scope)
 
         assertThat(scope.data).isEmpty()
     }

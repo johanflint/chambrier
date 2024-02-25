@@ -1,14 +1,15 @@
 package com.larastudios.chambrier.app
 
 import com.larastudios.chambrier.app.domain.ControlDeviceCommand
+import com.larastudios.chambrier.app.domain.DeviceCommand
 import com.larastudios.chambrier.app.domain.FlowContext
 import com.larastudios.chambrier.app.flowEngine.ControlDeviceAction
 import com.larastudios.chambrier.app.flowEngine.FlowEngine
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.launch
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -24,24 +25,37 @@ class AppListener(
     @EventListener
     suspend fun handleContextRefreshEvent(event: ContextRefreshedEvent): Unit = coroutineScope {
         val flows = flowLoader.load()
+        val commandChannel = Channel<List<DeviceCommand>>()
+
+        launch(CoroutineName("commandChannel")) {
+            commandChannel.consumeEach { commands ->
+                if (commands.isNotEmpty()) {
+                    logger.debug { "[commandChannel] Received ${commands.size} commands: ${commands.joinToString(", ")}" }
+                    controllers.forEach {
+                        it.send(commands)
+                    }
+                }
+            }
+        }
 
         launch(CoroutineName("storeListener")) {
             store.state()
                 .collect { state ->
-                    logger.info { "[storeListener] $state" }
-                    val commands = flows.map { flowEngine.execute(it, FlowContext(state)) }
-                        .map {
-                            getCommandMap(it.scope)
+                    logger.info { "[storeListener] New state: $state" }
+                    val commandMaps = flows.map { flow ->
+                        async {
+                            val report = flowEngine.execute(flow, FlowContext(state, commandChannel))
+                            getCommandMap(report.scope)
                         }
-                        .fold(mapOf(), ::mergeCommandMaps)
+                    }.awaitAll()
+
+                    val commands = commandMaps.fold(mapOf(), ::mergeCommandMaps)
                         .map { (deviceId, propertyMap) ->
                             val device = state.devices[deviceId] ?: throw IllegalArgumentException("State contains no device with id '$deviceId'")
                             ControlDeviceCommand(device, propertyMap)
                         }
 
-                    controllers.forEach {
-                        it.send(commands)
-                    }
+                    commandChannel.send(commands)
                 }
         }
 
