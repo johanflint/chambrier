@@ -47,6 +47,10 @@ class ShellyObserver(
 
         async {
             val deviceInfo = client.deviceInfo()
+            if (deviceInfo.model != "SNSW-001X16EU") { // Shelly Plus 1
+                throw UnsupportedDeviceException("Unknown Shelly model: ${deviceInfo.model}")
+            }
+
             val status = client.status()
 
             Device(
@@ -69,3 +73,5 @@ class ShellyObserver(
         }
     }
 }
+
+data class UnsupportedDeviceException(override val message: String) : Exception()
