@@ -7,6 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,6 +19,7 @@ import java.net.InetAddress
 import javax.jmdns.JmDNS
 
 @RestController
+@ConditionalOnProperty("shelly.enabled")
 class ShellyObserver(
     val objectMapper: ObjectMapper,
     val webClientBuilder: WebClient.Builder,

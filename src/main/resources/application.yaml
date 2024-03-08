@@ -27,3 +27,6 @@ hue:
   enabled: false
   base-url: ${HUE_ENDPOINT}
   app-key: ${HUE_APP_KEY}
+
+shelly:
+  enabled: false
