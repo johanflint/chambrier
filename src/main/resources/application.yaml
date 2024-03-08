@@ -5,6 +5,10 @@ logging:
     com.larastudios.chambrier.app.flowEngine: info
     javax.jmdns.impl.DNSIncoming: error
 
+server:
+  port: 8080
+  shutdown: "graceful"
+
 spring:
   profiles:
     default: local
