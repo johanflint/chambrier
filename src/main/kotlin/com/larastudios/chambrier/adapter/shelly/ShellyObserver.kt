@@ -7,6 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.web.bind.annotation.GetMapping
@@ -23,6 +24,7 @@ import javax.jmdns.JmDNS
 class ShellyObserver(
     val objectMapper: ObjectMapper,
     val webClientBuilder: WebClient.Builder,
+    @Value("\${server.port}") val port: Int,
 ) : Observer {
     private val flow = MutableSharedFlow<Event>(replay = 1)
 
@@ -75,7 +77,7 @@ class ShellyObserver(
             val webhooks = client.listHooks()
             val onHookFound = webhooks.any { it.enable && it.event == SWITCH_ON_EVENT }
             if (!onHookFound) {
-                val body = createHookRequest(true, localhost, 8080)
+                val body = createHookRequest(true, localhost, port)
                 client.createHook(body)
                 logger.info { "Created webhook for device '${deviceInfo.id}' for event '$SWITCH_ON_EVENT'" }
             }
