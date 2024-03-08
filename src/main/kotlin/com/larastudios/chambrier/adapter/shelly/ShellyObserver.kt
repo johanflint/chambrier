@@ -48,10 +48,12 @@ class ShellyObserver(
     private suspend fun discover(localhost: InetAddress): Deferred<List<Inet4Address>> = coroutineScope {
         async {
             withContext(Dispatchers.IO) {
+                logger.info { "[mDNS] Sending query..." }
                 val dns = JmDNS.create(localhost)
                 dns.list("_http._tcp.local.")
                     .filter {it.inetAddresses.isNotEmpty() && it.name.contains("shelly") }
                     .mapNotNull { it.inet4Addresses.firstOrNull() }
+                    .also { logger.info { "[mDNS] Sending query... OK, ${it.size} response(s)" } }
             }
         }
     }
