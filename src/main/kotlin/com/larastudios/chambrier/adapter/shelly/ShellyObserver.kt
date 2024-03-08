@@ -6,27 +6,43 @@ import com.larastudios.chambrier.app.domain.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableSharedFlow
 import org.springframework.http.codec.json.Jackson2JsonDecoder
-import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import java.net.Inet4Address
 import java.net.InetAddress
 import javax.jmdns.JmDNS
 
-@Service
+@RestController
 class ShellyObserver(
     val objectMapper: ObjectMapper,
     val webClientBuilder: WebClient.Builder,
 ) : Observer {
-    override suspend fun observe(): Flow<Event> {
+    private val flow = MutableSharedFlow<Event>(replay = 1)
+
+    @GetMapping("/hooks/shelly-one/{id}")
+    suspend fun hook(@PathVariable id: String, @RequestParam switch: Boolean) {
+        logger.debug { "Received webhook call for device '$id' with value '$switch'" }
+        val propertyChanged = BooleanPropertyChanged(deviceId = id, propertyId = "on", value = switch)
+        flow.tryEmit(propertyChanged)
+    }
+
+    override suspend fun observe(): Flow<Event> = coroutineScope {
         val localhost = withContext(Dispatchers.IO) {
             InetAddress.getLocalHost()
         }
 
-        val addresses = discover(localhost).await()
-        val devices = addresses.map { configure(it, localhost) }.awaitAll()
-        return flowOf<Event>(DiscoveredDevices(devices))
+        launch {
+            val addresses = discover(localhost).await()
+            val devices = addresses.map { configure(it, localhost) }.awaitAll()
+            flow.tryEmit(DiscoveredDevices(devices))
+        }
+
+        flow
     }
 
     private suspend fun discover(localhost: InetAddress): Deferred<List<Inet4Address>> = coroutineScope {
