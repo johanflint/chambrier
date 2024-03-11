@@ -105,7 +105,7 @@ class ShellyObserver(
                         value = status.switch0.output
                     )
                 ),
-                externalId = deviceAddress.hostAddress
+                address = deviceAddress.hostAddress
             )
         }
     }
