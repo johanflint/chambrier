@@ -23,6 +23,8 @@ class ShellyClient(webClient: WebClient) {
 
     suspend fun createHook(body: WebhookCreateRequestBody): WebhookCreatedResponse = service.createHook(body).awaitSingle()
 
+    suspend fun switchSet(body: SwitchSetRequestBody): SwitchResponseBody = service.switchSet(body).awaitSingle()
+
     @HttpExchange("/rpc")
     interface Api {
         @GetExchange("/Shelly.GetDeviceInfo")
@@ -36,5 +38,8 @@ class ShellyClient(webClient: WebClient) {
 
         @PostExchange("/Webhook.Create")
         fun createHook(@RequestBody body: WebhookCreateRequestBody): Mono<WebhookCreatedResponse>
+
+        @PostExchange("/Switch.Set")
+        fun switchSet(@RequestBody body: SwitchSetRequestBody): Mono<SwitchResponseBody>
     }
 }

@@ -41,3 +41,10 @@ data class WebhookCreateRequestBody(
 )
 
 data class WebhookCreatedResponse(val id: Int, val rev: Int)
+
+data class SwitchSetRequestBody(
+    val id: Int,
+    val on: Boolean,
+)
+
+data class SwitchResponseBody(val wasOn: Boolean)

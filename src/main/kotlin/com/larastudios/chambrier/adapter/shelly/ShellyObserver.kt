@@ -102,7 +102,8 @@ class ShellyObserver(
                         name = "on",
                         type = PropertyType.On,
                         readonly = false,
-                        value = status.switch0.output
+                        value = status.switch0.output,
+                        externalId = "0"
                     )
                 ),
                 address = deviceAddress.hostAddress
