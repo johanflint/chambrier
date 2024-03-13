@@ -12,6 +12,7 @@ data class Device(
     val name: String,
     val properties: Map<String, Property>,
     val externalId: String? = null,
+    val address: String? = null,
 ) {
     companion object
 }

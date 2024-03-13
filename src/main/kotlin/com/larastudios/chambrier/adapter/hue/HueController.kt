@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service
 @Service
 class HueController(val client: HueClient) : Controller {
     override suspend fun send(commands: List<DeviceCommand>) {
-        commands.filterIsInstance<ControlDeviceCommand>().forEach { send(it) }
+        commands.filterIsInstance<ControlDeviceCommand>()
+            .filter { it.device.manufacturer != "Shelly" }
+            .forEach { send(it) }
     }
 
     private suspend fun send(command: ControlDeviceCommand) {
